@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-export type Plan = "FREE" | "PRO";
+export type Plan = "free" | "pro";
 
 export type Subscription = {
   id: string;
@@ -79,7 +79,7 @@ export async function isPro(
   const subscription = await getSubscription(clerkUserId);
 
   return (
-    subscription?.plan?.toUpperCase() === "PRO" &&
+    subscription?.plan === "pro" &&
     ["active", "trialing"].includes(
       subscription.status.toLowerCase()
     )
@@ -94,7 +94,7 @@ export async function getUserPlan(
 ): Promise<Plan> {
   const pro = await isPro(clerkUserId);
 
-  return pro ? "PRO" : "FREE";
+  return pro ? "pro" : "free";
 }
 
 /**

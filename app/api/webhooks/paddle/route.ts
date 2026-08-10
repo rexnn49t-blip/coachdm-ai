@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
           email:
             data?.customData?.email ?? null,
 
-          plan: "PRO",
+          plan: "pro",
 
           status:
             data?.status ?? "active",
@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
       await updateSubscription(
         clerkUserId,
         {
-          plan: "PRO",
+          plan: "pro",
 
           status:
             data?.status ?? "active",
@@ -261,8 +261,8 @@ export async function POST(req: NextRequest) {
         {
           plan:
             data?.status === "canceled"
-              ? "FREE"
-              : "PRO",
+              ? "free"
+              : "pro",
 
           status:
             data?.status ?? "active",
@@ -334,7 +334,7 @@ export async function POST(req: NextRequest) {
       await updateSubscription(
         clerkUserId,
         {
-          plan: "FREE",
+          plan: "free",
 
           status: "canceled",
 
