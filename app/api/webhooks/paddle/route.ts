@@ -7,7 +7,7 @@ import { updateSubscription } from "@/lib/subscription-db";
 export async function POST(req: NextRequest) {
   try {
     // Paddle requires the ORIGINAL raw request body
-    // for webhook signature verification.
+    // for signature verification.
     const rawBody = await req.text();
 
     const signature = req.headers.get("paddle-signature");
@@ -44,9 +44,8 @@ export async function POST(req: NextRequest) {
     }
 
     /*
-     * Verify the webhook signature AND parse the event.
-     *
-     * Never trust Paddle webhook data before this succeeds.
+     * Verify the Paddle signature and parse
+     * the webhook event.
      */
     const eventData =
       await paddle.webhooks.unmarshal(
@@ -60,271 +59,349 @@ export async function POST(req: NextRequest) {
       eventData.eventType
     );
 
-    /*
-     * We intentionally use the event data here.
-     *
-     * Paddle's SDK gives us strongly typed events, but keeping
-     * the subscription data handling flexible prevents SDK
-     * type changes from affecting the database mapping.
-     */
     const data = eventData.data as any;
 
-    switch (eventData.eventType) {
-      /*
-       * -----------------------------------------
-       * SUBSCRIPTION CREATED
-       * -----------------------------------------
-       */
-      case EventName.SubscriptionCreated: {
-        const clerkUserId =
-          data?.customData?.clerk_user_id;
+    /*
+     * Paddle custom data contains the Clerk user ID
+     * that we sent when creating the checkout.
+     */
+    const clerkUserId =
+      data?.customData?.clerk_user_id ?? null;
 
-        if (!clerkUserId) {
-          console.error(
-            "No clerk_user_id found in Paddle subscription custom data."
-          );
+    /*
+     * -----------------------------------------
+     * SUBSCRIPTION CREATED
+     * -----------------------------------------
+     */
+    if (
+      eventData.eventType ===
+      EventName.SubscriptionCreated
+    ) {
+      if (!clerkUserId) {
+        console.error(
+          "No clerk_user_id found in subscription.created."
+        );
 
-          return NextResponse.json(
-            {
-              error:
-                "Missing clerk_user_id in subscription data.",
-            },
-            {
-              status: 400,
-            }
-          );
-        }
-
-        const priceId =
-          data?.items?.[0]?.price?.id ?? null;
-
-        const email =
-          data?.customData?.email ??
-          null;
-
-        const currentBillingPeriod =
-          data?.currentBillingPeriod ?? null;
-
-        await updateSubscription(
-          clerkUserId,
+        return NextResponse.json(
           {
-            email,
-            plan: "PRO",
-            status: data?.status ?? "active",
-
-            paddle_customer_id:
-              data?.customerId ?? null,
-
-            paddle_subscription_id:
-              data?.id ?? null,
-
-            paddle_price_id:
-              priceId,
-
-            current_period_start:
-              currentBillingPeriod?.startsAt ??
-              null,
-
-            current_period_end:
-              currentBillingPeriod?.endsAt ??
-              null,
-
-            cancel_at_period_end: false,
+            error:
+              "Missing clerk_user_id in subscription data.",
+          },
+          {
+            status: 400,
           }
         );
-
-        console.log(
-          "Subscription created and upgraded to PRO:",
-          clerkUserId
-        );
-
-        break;
       }
 
-      /*
-       * -----------------------------------------
-       * SUBSCRIPTION UPDATED
-       * -----------------------------------------
-       *
-       * This handles:
-       * - renewals
-       * - plan changes
-       * - pauses
-       * - resumes
-       * - cancellations
-       * - billing-period changes
-       */
-      case EventName.SubscriptionUpdated: {
-        const clerkUserId =
-          data?.customData?.clerk_user_id;
+      const priceId =
+        data?.items?.[0]?.price?.id ?? null;
 
-        if (!clerkUserId) {
-          console.error(
-            "No clerk_user_id found in updated subscription."
-          );
+      const currentBillingPeriod =
+        data?.currentBillingPeriod ?? null;
 
-          return NextResponse.json(
-            {
-              error:
-                "Missing clerk_user_id in subscription data.",
-            },
-            {
-              status: 400,
-            }
-          );
+      await updateSubscription(
+        clerkUserId,
+        {
+          email:
+            data?.customData?.email ?? null,
+
+          plan: "PRO",
+
+          status:
+            data?.status ?? "active",
+
+          paddle_customer_id:
+            data?.customerId ?? null,
+
+          paddle_subscription_id:
+            data?.id ?? null,
+
+          paddle_price_id:
+            priceId,
+
+          current_period_start:
+            currentBillingPeriod?.startsAt ??
+            null,
+
+          current_period_end:
+            currentBillingPeriod?.endsAt ??
+            null,
+
+          cancel_at_period_end: false,
         }
+      );
 
-        const priceId =
-          data?.items?.[0]?.price?.id ?? null;
+      console.log(
+        "Subscription created and upgraded to PRO:",
+        clerkUserId
+      );
 
-        const currentBillingPeriod =
-          data?.currentBillingPeriod ?? null;
-
-        const cancelAtPeriodEnd =
-          data?.scheduledChange?.action ===
-          "cancel";
-
-        await updateSubscription(
-          clerkUserId,
-          {
-            plan:
-              data?.status === "canceled"
-                ? "FREE"
-                : "PRO",
-
-            status:
-              data?.status ?? "active",
-
-            paddle_customer_id:
-              data?.customerId ?? null,
-
-            paddle_subscription_id:
-              data?.id ?? null,
-
-            paddle_price_id:
-              priceId,
-
-            current_period_start:
-              currentBillingPeriod?.startsAt ??
-              null,
-
-            current_period_end:
-              currentBillingPeriod?.endsAt ??
-              null,
-
-            cancel_at_period_end:
-              cancelAtPeriodEnd,
-          }
-        );
-
-        console.log(
-          "Subscription updated:",
-          clerkUserId,
-          data?.status
-        );
-
-        break;
-      }
-
-      /*
-       * -----------------------------------------
-       * SUBSCRIPTION CANCELED
-       * -----------------------------------------
-       */
-      case EventName.SubscriptionCanceled: {
-        const clerkUserId =
-          data?.customData?.clerk_user_id;
-
-        if (!clerkUserId) {
-          console.error(
-            "No clerk_user_id found in canceled subscription."
-          );
-
-          return NextResponse.json(
-            {
-              error:
-                "Missing clerk_user_id in subscription data.",
-            },
-            {
-              status: 400,
-            }
-          );
-        }
-
-        await updateSubscription(
-          clerkUserId,
-          {
-            plan: "FREE",
-            status: "canceled",
-
-            paddle_customer_id:
-              data?.customerId ?? null,
-
-            paddle_subscription_id:
-              data?.id ?? null,
-
-            paddle_price_id:
-              data?.items?.[0]?.price?.id ??
-              null,
-
-            current_period_start:
-              data?.currentBillingPeriod
-                ?.startsAt ?? null,
-
-            current_period_end:
-              data?.currentBillingPeriod
-                ?.endsAt ?? null,
-
-            cancel_at_period_end: true,
-          }
-        );
-
-        console.log(
-          "Subscription canceled:",
-          clerkUserId
-        );
-
-        break;
-      }
-
-      /*
-       * -----------------------------------------
-       * TRANSACTION COMPLETED
-       * -----------------------------------------
-       *
-       * We don't upgrade the user here because
-       * subscription.created is responsible for
-       * provisioning the recurring subscription.
-       *
-       * This event is useful for payment confirmation
-       * and future billing analytics.
-       */
-      case EventName.TransactionCompleted: {
-        console.log(
-          "Paddle transaction completed:",
-          data?.id
-        );
-
-        break;
-      }
-
-      /*
-       * -----------------------------------------
-       * OTHER EVENTS
-       * -----------------------------------------
-       */
-      default: {
-        console.log(
-          "Unhandled Paddle event:",
-          eventData.eventType
-        );
-      }
+      return NextResponse.json({
+        success: true,
+      });
     }
 
     /*
-     * Always acknowledge successfully processed
-     * Paddle notifications.
+     * -----------------------------------------
+     * SUBSCRIPTION ACTIVATED
+     * -----------------------------------------
+     *
+     * This is the event we saw in your
+     * Paddle notification log.
      */
+    if (
+      eventData.eventType ===
+      EventName.SubscriptionActivated
+    ) {
+      if (!clerkUserId) {
+        console.error(
+          "No clerk_user_id found in subscription.activated."
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Missing clerk_user_id in activated subscription.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      const priceId =
+        data?.items?.[0]?.price?.id ?? null;
+
+      const currentBillingPeriod =
+        data?.currentBillingPeriod ?? null;
+
+      await updateSubscription(
+        clerkUserId,
+        {
+          plan: "PRO",
+
+          status:
+            data?.status ?? "active",
+
+          paddle_customer_id:
+            data?.customerId ?? null,
+
+          paddle_subscription_id:
+            data?.id ?? null,
+
+          paddle_price_id:
+            priceId,
+
+          current_period_start:
+            currentBillingPeriod?.startsAt ??
+            null,
+
+          current_period_end:
+            currentBillingPeriod?.endsAt ??
+            null,
+
+          cancel_at_period_end: false,
+        }
+      );
+
+      console.log(
+        "Subscription activated and upgraded to PRO:",
+        clerkUserId
+      );
+
+      return NextResponse.json({
+        success: true,
+      });
+    }
+
+    /*
+     * -----------------------------------------
+     * SUBSCRIPTION UPDATED
+     * -----------------------------------------
+     *
+     * Handles:
+     * - renewals
+     * - plan changes
+     * - pauses
+     * - resumes
+     * - scheduled cancellations
+     */
+    if (
+      eventData.eventType ===
+      EventName.SubscriptionUpdated
+    ) {
+      if (!clerkUserId) {
+        console.error(
+          "No clerk_user_id found in subscription.updated."
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Missing clerk_user_id in updated subscription.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      const priceId =
+        data?.items?.[0]?.price?.id ?? null;
+
+      const currentBillingPeriod =
+        data?.currentBillingPeriod ?? null;
+
+      const cancelAtPeriodEnd =
+        data?.scheduledChange?.action ===
+        "cancel";
+
+      await updateSubscription(
+        clerkUserId,
+        {
+          plan:
+            data?.status === "canceled"
+              ? "FREE"
+              : "PRO",
+
+          status:
+            data?.status ?? "active",
+
+          paddle_customer_id:
+            data?.customerId ?? null,
+
+          paddle_subscription_id:
+            data?.id ?? null,
+
+          paddle_price_id:
+            priceId,
+
+          current_period_start:
+            currentBillingPeriod?.startsAt ??
+            null,
+
+          current_period_end:
+            currentBillingPeriod?.endsAt ??
+            null,
+
+          cancel_at_period_end:
+            cancelAtPeriodEnd,
+        }
+      );
+
+      console.log(
+        "Subscription updated:",
+        clerkUserId,
+        data?.status
+      );
+
+      return NextResponse.json({
+        success: true,
+      });
+    }
+
+    /*
+     * -----------------------------------------
+     * SUBSCRIPTION CANCELED
+     * -----------------------------------------
+     */
+    if (
+      eventData.eventType ===
+      EventName.SubscriptionCanceled
+    ) {
+      if (!clerkUserId) {
+        console.error(
+          "No clerk_user_id found in subscription.canceled."
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Missing clerk_user_id in canceled subscription.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      const priceId =
+        data?.items?.[0]?.price?.id ?? null;
+
+      const currentBillingPeriod =
+        data?.currentBillingPeriod ?? null;
+
+      await updateSubscription(
+        clerkUserId,
+        {
+          plan: "FREE",
+
+          status: "canceled",
+
+          paddle_customer_id:
+            data?.customerId ?? null,
+
+          paddle_subscription_id:
+            data?.id ?? null,
+
+          paddle_price_id:
+            priceId,
+
+          current_period_start:
+            currentBillingPeriod?.startsAt ??
+            null,
+
+          current_period_end:
+            currentBillingPeriod?.endsAt ??
+            null,
+
+          cancel_at_period_end: true,
+        }
+      );
+
+      console.log(
+        "Subscription canceled:",
+        clerkUserId
+      );
+
+      return NextResponse.json({
+        success: true,
+      });
+    }
+
+    /*
+     * -----------------------------------------
+     * TRANSACTION COMPLETED
+     * -----------------------------------------
+     *
+     * Payment completed successfully.
+     * The subscription activation event is
+     * responsible for upgrading the account.
+     */
+    if (
+      eventData.eventType ===
+      EventName.TransactionCompleted
+    ) {
+      console.log(
+        "Paddle transaction completed:",
+        data?.id
+      );
+
+      return NextResponse.json({
+        success: true,
+      });
+    }
+
+    /*
+     * -----------------------------------------
+     * OTHER EVENTS
+     * -----------------------------------------
+     */
+    console.log(
+      "Unhandled Paddle event:",
+      eventData.eventType
+    );
+
     return NextResponse.json({
       success: true,
     });
@@ -332,19 +409,18 @@ export async function POST(req: NextRequest) {
     console.error(
       "========== PADDLE WEBHOOK ERROR =========="
     );
+
     console.error(error);
+
     console.error(
       "==========================================="
     );
 
-    /*
-     * Returning 400 tells Paddle that this webhook
-     * was not successfully processed.
-     */
     return NextResponse.json(
       {
         success: false,
-        error: "Invalid or failed Paddle webhook.",
+        error:
+          "Invalid or failed Paddle webhook.",
       },
       {
         status: 400,
