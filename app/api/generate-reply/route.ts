@@ -3,6 +3,13 @@ import { auth } from "@clerk/nextjs/server";
 
 import { openrouter } from "@/lib/openrouter";
 
+import {
+  canGenerateReply,
+  incrementReplyUsage,
+} from "@/lib/subscription-db";
+
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -40,6 +47,24 @@ export async function POST(req: NextRequest) {
         }
       );
     }
+
+    const allowed = await canGenerateReply(userId);
+
+if (!allowed) {
+  return new Response(
+    JSON.stringify({
+      error:
+        "You've reached your monthly Free plan limit. Upgrade to Pro for unlimited AI replies.",
+      code: "REPLY_LIMIT_REACHED",
+    }),
+    {
+      status: 403,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+}
 
     const stream = await openrouter.chat.completions.create({
       model: "openai/gpt-4.1-mini",
@@ -312,60 +337,96 @@ Return ONLY the final coaching reply.
       ],
     });
 
-    const encoder = new TextEncoder();
+   const encoder = new TextEncoder();
 
-    const readableStream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of stream) {
-            const content =
-              chunk.choices[0]?.delta?.content;
+const readableStream = new ReadableStream({
+  async start(controller) {
+    try {
+      for await (const chunk of stream) {
+        const content =
+          chunk.choices[0]?.delta?.content;
 
-            if (content) {
-              controller.enqueue(
-                encoder.encode(content)
-              );
-            }
-          }
-
-          controller.close();
-        } catch (error) {
-          console.error(
-            "Streaming error:",
-            error
+        if (content) {
+          controller.enqueue(
+            encoder.encode(content)
           );
-
-          controller.error(error);
         }
-      },
-    });
-
-    return new Response(readableStream, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-cache, no-transform",
-        Connection: "keep-alive",
-      },
-    });
-  } catch (error) {
-    console.error(
-      "Generate reply error:",
-      error
-    );
-
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error:
-          "Something went wrong while generating the reply.",
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
       }
-    );
-  }
+
+      // -----------------------------------------
+      // TRACK SUCCESSFUL AI GENERATION
+      // -----------------------------------------
+
+      const { error: generationError } =
+        await supabaseAdmin
+          .from("reply_generations")
+          .insert({
+            clerk_user_id: userId,
+            tone,
+            length,
+          });
+
+      if (generationError) {
+        console.error(
+          "Failed to track reply generation:",
+          generationError
+        );
+      }
+
+      // -----------------------------------------
+      // INCREMENT MONTHLY REPLY USAGE
+      // -----------------------------------------
+
+      const updatedSubscription =
+        await incrementReplyUsage(userId);
+
+      if (!updatedSubscription) {
+        console.error(
+          "Failed to increment reply usage for:",
+          userId
+        );
+      }
+
+      controller.close();
+    } catch (error) {
+      console.error(
+        "Streaming error:",
+        error
+      );
+
+      controller.error(error);
+    }
+  },
+});
+
+return new Response(readableStream, {
+  status: 200,
+  headers: {
+    "Content-Type":
+      "text/plain; charset=utf-8",
+    "Cache-Control":
+      "no-cache, no-transform",
+    Connection: "keep-alive",
+  },
+});
+} catch (error) {
+  console.error(
+    "Generate reply error:",
+    error
+  );
+
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error:
+        "Something went wrong while generating the reply.",
+    }),
+    {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+}
 }

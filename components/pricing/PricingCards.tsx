@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 
 const freeFeatures = [
-  "5 AI replies / month",
+  "3 AI replies / month",
   "Basic AI model",
   "Reply history",
   "Email support",
