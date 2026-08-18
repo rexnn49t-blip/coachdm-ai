@@ -10,6 +10,7 @@ import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
 import Pricing from "@/components/landing/Pricing";
 
+
 export default function Home() {
   return (
     <main className="pt-20">
