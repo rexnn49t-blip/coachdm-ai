@@ -2,18 +2,72 @@ import { NextRequest, NextResponse } from "next/server";
 import { EventName } from "@paddle/paddle-node-sdk";
 
 import { paddle } from "@/lib/paddle";
-import { updateSubscription } from "@/lib/subscription-db";
+
+import {
+  getSubscription,
+  updateSubscription,
+} from "@/lib/subscription-db";
+
+import { sendEmail } from "@/lib/send-email";
+
+import {
+  proUpgradeEmail,
+  subscriptionUpdatedEmail,
+  subscriptionDowngradedEmail,
+  subscriptionCancelledEmail,
+  subscriptionReactivatedEmail,
+  subscriptionRenewedEmail,
+} from "@/lib/email-templates";
+
+/**
+ * Send a subscription notification email.
+ */
+async function sendSubscriptionEmail({
+  email,
+  subject,
+  html,
+}: {
+  email: string | null | undefined;
+  subject: string;
+  html: string;
+}) {
+  if (!email) {
+    console.log(
+      "Subscription email skipped: no email address."
+    );
+
+    return;
+  }
+
+  const result = await sendEmail({
+    to: email,
+    subject,
+    html,
+  });
+
+  if (!result.success) {
+    console.error(
+      "Subscription notification email failed:",
+      result.error
+    );
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
-    // Paddle requires the ORIGINAL raw request body
-    // for signature verification.
+    /*
+     * Paddle requires the ORIGINAL raw request body
+     * for signature verification.
+     */
     const rawBody = await req.text();
 
-    const signature = req.headers.get("paddle-signature");
+    const signature =
+      req.headers.get("paddle-signature");
 
     if (!signature) {
-      console.error("Paddle webhook signature missing.");
+      console.error(
+        "Paddle webhook signature missing."
+      );
 
       return NextResponse.json(
         {
@@ -35,7 +89,8 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json(
         {
-          error: "Webhook secret is not configured.",
+          error:
+            "Webhook secret is not configured.",
         },
         {
           status: 500,
@@ -44,8 +99,7 @@ export async function POST(req: NextRequest) {
     }
 
     /*
-     * Verify the Paddle signature and parse
-     * the webhook event.
+     * Verify Paddle webhook.
      */
     const eventData =
       await paddle.webhooks.unmarshal(
@@ -62,16 +116,32 @@ export async function POST(req: NextRequest) {
     const data = eventData.data as any;
 
     /*
-     * Paddle custom data contains the Clerk user ID
-     * that we sent when creating the checkout.
+     * Get Clerk user ID from Paddle custom data.
      */
     const clerkUserId =
       data?.customData?.clerk_user_id ?? null;
 
     /*
-     * -----------------------------------------
+     * Get previous subscription BEFORE updating it.
+     */
+    const previousSubscription =
+      clerkUserId
+        ? await getSubscription(clerkUserId)
+        : null;
+
+    /*
+     * Get email from Paddle first.
+     * Fall back to Supabase.
+     */
+    const email =
+      data?.customData?.email ??
+      previousSubscription?.email ??
+      null;
+
+    /*
+     * =================================================
      * SUBSCRIPTION CREATED
-     * -----------------------------------------
+     * =================================================
      */
     if (
       eventData.eventType ===
@@ -99,37 +169,68 @@ export async function POST(req: NextRequest) {
       const currentBillingPeriod =
         data?.currentBillingPeriod ?? null;
 
-      await updateSubscription(
-        clerkUserId,
-        {
-          email:
-            data?.customData?.email ?? null,
+      const updatedSubscription =
+        await updateSubscription(
+          clerkUserId,
+          {
+            email,
 
-          plan: "pro",
+            plan: "pro",
 
-          status:
-            data?.status ?? "active",
+            status:
+              data?.status ?? "active",
 
-          paddle_customer_id:
-            data?.customerId ?? null,
+            paddle_customer_id:
+              data?.customerId ?? null,
 
-          paddle_subscription_id:
-            data?.id ?? null,
+            paddle_subscription_id:
+              data?.id ?? null,
 
-          paddle_price_id:
-            priceId,
+            paddle_price_id:
+              priceId,
 
-          current_period_start:
-            currentBillingPeriod?.startsAt ??
-            null,
+            current_period_start:
+              currentBillingPeriod?.startsAt ??
+              null,
 
-          current_period_end:
-            currentBillingPeriod?.endsAt ??
-            null,
+            current_period_end:
+              currentBillingPeriod?.endsAt ??
+              null,
 
-          cancel_at_period_end: false,
-        }
-      );
+            cancel_at_period_end: false,
+          }
+        );
+
+      if (!updatedSubscription) {
+        return NextResponse.json(
+          {
+            error:
+              "Failed to update subscription.",
+          },
+          {
+            status: 500,
+          }
+        );
+      }
+
+      /*
+       * Only send upgrade email if the user
+       * wasn't already Pro.
+       */
+      if (
+        previousSubscription?.plan !== "pro"
+      ) {
+        const html = proUpgradeEmail({
+          firstName: "there",
+        });
+
+        await sendSubscriptionEmail({
+          email,
+          subject:
+            "Welcome to CoachDM Pro",
+          html,
+        });
+      }
 
       console.log(
         "Subscription created and upgraded to PRO:",
@@ -142,12 +243,13 @@ export async function POST(req: NextRequest) {
     }
 
     /*
-     * -----------------------------------------
+     * =================================================
      * SUBSCRIPTION ACTIVATED
-     * -----------------------------------------
+     * =================================================
      *
-     * This is the event we saw in your
-     * Paddle notification log.
+     * We intentionally do NOT send another
+     * upgrade email here because subscription.created
+     * already handles it.
      */
     if (
       eventData.eventType ===
@@ -175,37 +277,52 @@ export async function POST(req: NextRequest) {
       const currentBillingPeriod =
         data?.currentBillingPeriod ?? null;
 
-      await updateSubscription(
-        clerkUserId,
-        {
-          plan: "pro",
+      const updatedSubscription =
+        await updateSubscription(
+          clerkUserId,
+          {
+            email,
 
-          status:
-            data?.status ?? "active",
+            plan: "pro",
 
-          paddle_customer_id:
-            data?.customerId ?? null,
+            status:
+              data?.status ?? "active",
 
-          paddle_subscription_id:
-            data?.id ?? null,
+            paddle_customer_id:
+              data?.customerId ?? null,
 
-          paddle_price_id:
-            priceId,
+            paddle_subscription_id:
+              data?.id ?? null,
 
-          current_period_start:
-            currentBillingPeriod?.startsAt ??
-            null,
+            paddle_price_id:
+              priceId,
 
-          current_period_end:
-            currentBillingPeriod?.endsAt ??
-            null,
+            current_period_start:
+              currentBillingPeriod?.startsAt ??
+              null,
 
-          cancel_at_period_end: false,
-        }
-      );
+            current_period_end:
+              currentBillingPeriod?.endsAt ??
+              null,
+
+            cancel_at_period_end: false,
+          }
+        );
+
+      if (!updatedSubscription) {
+        return NextResponse.json(
+          {
+            error:
+              "Failed to update activated subscription.",
+          },
+          {
+            status: 500,
+          }
+        );
+      }
 
       console.log(
-        "Subscription activated and upgraded to PRO:",
+        "Subscription activated:",
         clerkUserId
       );
 
@@ -215,16 +332,9 @@ export async function POST(req: NextRequest) {
     }
 
     /*
-     * -----------------------------------------
+     * =================================================
      * SUBSCRIPTION UPDATED
-     * -----------------------------------------
-     *
-     * Handles:
-     * - renewals
-     * - plan changes
-     * - pauses
-     * - resumes
-     * - scheduled cancellations
+     * =================================================
      */
     if (
       eventData.eventType ===
@@ -256,43 +366,179 @@ export async function POST(req: NextRequest) {
         data?.scheduledChange?.action ===
         "cancel";
 
-      await updateSubscription(
-        clerkUserId,
-        {
-          plan:
-            data?.status === "canceled"
-              ? "free"
-              : "pro",
+      const newStatus =
+        data?.status ?? "active";
 
-          status:
-            data?.status ?? "active",
+      const newPlan =
+        newStatus === "canceled"
+          ? "free"
+          : "pro";
 
-          paddle_customer_id:
-            data?.customerId ?? null,
+      /*
+       * Was the user previously Pro?
+       */
+      const wasPro =
+        previousSubscription?.plan ===
+          "pro" &&
+        ["active", "trialing"].includes(
+          previousSubscription.status.toLowerCase()
+        );
 
-          paddle_subscription_id:
-            data?.id ?? null,
+      /*
+       * Is the user currently Pro?
+       */
+      const isNowPro =
+        newPlan === "pro" &&
+        ["active", "trialing"].includes(
+          newStatus.toLowerCase()
+        );
 
-          paddle_price_id:
-            priceId,
+      /*
+       * Detect renewal.
+       */
+      const previousPeriodEnd =
+        previousSubscription
+          ?.current_period_end;
 
-          current_period_start:
-            currentBillingPeriod?.startsAt ??
-            null,
+      const newPeriodEnd =
+        currentBillingPeriod?.endsAt ??
+        null;
 
-          current_period_end:
-            currentBillingPeriod?.endsAt ??
-            null,
+      const isRenewal =
+        wasPro &&
+        isNowPro &&
+        !!previousPeriodEnd &&
+        !!newPeriodEnd &&
+        new Date(newPeriodEnd).getTime() >
+          new Date(previousPeriodEnd).getTime();
 
-          cancel_at_period_end:
-            cancelAtPeriodEnd,
-        }
-      );
+      /*
+       * Update subscription.
+       */
+      const updatedSubscription =
+        await updateSubscription(
+          clerkUserId,
+          {
+            email,
+
+            plan: newPlan,
+
+            status: newStatus,
+
+            paddle_customer_id:
+              data?.customerId ?? null,
+
+            paddle_subscription_id:
+              data?.id ?? null,
+
+            paddle_price_id:
+              priceId,
+
+            current_period_start:
+              currentBillingPeriod?.startsAt ??
+              null,
+
+            current_period_end:
+              currentBillingPeriod?.endsAt ??
+              null,
+
+            cancel_at_period_end:
+              cancelAtPeriodEnd,
+          }
+        );
+
+      if (!updatedSubscription) {
+        return NextResponse.json(
+          {
+            error:
+              "Failed to update subscription.",
+          },
+          {
+            status: 500,
+          }
+        );
+      }
+
+      /*
+       * -----------------------------------------
+       * PRO → FREE
+       * -----------------------------------------
+       */
+      if (wasPro && !isNowPro) {
+        const html =
+          subscriptionDowngradedEmail({
+            firstName: "there",
+          });
+
+        await sendSubscriptionEmail({
+          email,
+          subject:
+            "Your CoachDM plan was changed",
+          html,
+        });
+      }
+
+      /*
+       * -----------------------------------------
+       * FREE → PRO
+       * -----------------------------------------
+       */
+      else if (!wasPro && isNowPro) {
+        const html =
+          subscriptionReactivatedEmail({
+            firstName: "there",
+          });
+
+        await sendSubscriptionEmail({
+          email,
+          subject:
+            "Your CoachDM Pro subscription is active again",
+          html,
+        });
+      }
+
+      /*
+       * -----------------------------------------
+       * PRO RENEWAL
+       * -----------------------------------------
+       */
+      else if (isRenewal) {
+        const html =
+          subscriptionRenewedEmail({
+            firstName: "there",
+          });
+
+        await sendSubscriptionEmail({
+          email,
+          subject:
+            "Your CoachDM subscription was renewed",
+          html,
+        });
+      }
+
+      /*
+       * -----------------------------------------
+       * NORMAL UPDATE
+       * -----------------------------------------
+       */
+      else {
+        const html =
+          subscriptionUpdatedEmail({
+            firstName: "there",
+          });
+
+        await sendSubscriptionEmail({
+          email,
+          subject:
+            "Your CoachDM subscription was updated",
+          html,
+        });
+      }
 
       console.log(
         "Subscription updated:",
         clerkUserId,
-        data?.status
+        newStatus
       );
 
       return NextResponse.json({
@@ -301,9 +547,9 @@ export async function POST(req: NextRequest) {
     }
 
     /*
-     * -----------------------------------------
+     * =================================================
      * SUBSCRIPTION CANCELED
-     * -----------------------------------------
+     * =================================================
      */
     if (
       eventData.eventType ===
@@ -331,33 +577,60 @@ export async function POST(req: NextRequest) {
       const currentBillingPeriod =
         data?.currentBillingPeriod ?? null;
 
-      await updateSubscription(
-        clerkUserId,
-        {
-          plan: "free",
+      const updatedSubscription =
+        await updateSubscription(
+          clerkUserId,
+          {
+            email,
 
-          status: "canceled",
+            plan: "free",
 
-          paddle_customer_id:
-            data?.customerId ?? null,
+            status: "canceled",
 
-          paddle_subscription_id:
-            data?.id ?? null,
+            paddle_customer_id:
+              data?.customerId ?? null,
 
-          paddle_price_id:
-            priceId,
+            paddle_subscription_id:
+              data?.id ?? null,
 
-          current_period_start:
-            currentBillingPeriod?.startsAt ??
-            null,
+            paddle_price_id:
+              priceId,
 
-          current_period_end:
-            currentBillingPeriod?.endsAt ??
-            null,
+            current_period_start:
+              currentBillingPeriod?.startsAt ??
+              null,
 
-          cancel_at_period_end: true,
-        }
-      );
+            current_period_end:
+              currentBillingPeriod?.endsAt ??
+              null,
+
+            cancel_at_period_end: true,
+          }
+        );
+
+      if (!updatedSubscription) {
+        return NextResponse.json(
+          {
+            error:
+              "Failed to update canceled subscription.",
+          },
+          {
+            status: 500,
+          }
+        );
+      }
+
+      const html =
+        subscriptionCancelledEmail({
+          firstName: "there",
+        });
+
+      await sendSubscriptionEmail({
+        email,
+        subject:
+          "Your CoachDM subscription was cancelled",
+        html,
+      });
 
       console.log(
         "Subscription canceled:",
@@ -370,13 +643,9 @@ export async function POST(req: NextRequest) {
     }
 
     /*
-     * -----------------------------------------
+     * =================================================
      * TRANSACTION COMPLETED
-     * -----------------------------------------
-     *
-     * Payment completed successfully.
-     * The subscription activation event is
-     * responsible for upgrading the account.
+     * =================================================
      */
     if (
       eventData.eventType ===
@@ -393,9 +662,9 @@ export async function POST(req: NextRequest) {
     }
 
     /*
-     * -----------------------------------------
+     * =================================================
      * OTHER EVENTS
-     * -----------------------------------------
+     * =================================================
      */
     console.log(
       "Unhandled Paddle event:",

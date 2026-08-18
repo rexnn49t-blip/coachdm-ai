@@ -240,7 +240,7 @@ export function welcomeEmail({
       </p>
 
       <a
-        href="${process.env.NEXT_PUBLIC_APP_URL ?? "#"}"
+        href="${process.env.NEXT_PUBLIC_APP_URL ?? "https://coachdm-ai.vercel.app"}"
         style="
           display:inline-block;
           margin-top:24px;
