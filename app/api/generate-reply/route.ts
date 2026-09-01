@@ -9,6 +9,7 @@ import {
 } from "@/lib/subscription-db";
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getLeadById } from "@/lib/leads";
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,6 +33,12 @@ export async function POST(req: NextRequest) {
       leadMessage,
       tone = "Professional",
       length = "Medium",
+      leadId,
+    }: {
+      leadMessage: string;
+      tone?: string;
+      length?: string;
+      leadId?: string | null;
     } = await req.json();
 
     if (!leadMessage?.trim()) {
@@ -48,35 +55,89 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Fetch selected lead securely from Supabase
+    let leadContext = "";
+
+    if (leadId) {
+      const lead = await getLeadById(
+        userId,
+        leadId
+      );
+
+      if (lead) {
+        leadContext = `
+SELECTED LEAD CONTEXT
+
+The coach is generating a reply for this specific person.
+
+Lead name:
+${lead.name}
+
+Current pipeline stage:
+${lead.stage.replace(/_/g, " ")}
+
+Current intent:
+${lead.intent.replace(/_/g, " ")}
+
+Lead temperature:
+${lead.temperature}
+
+Lead goal:
+${lead.goal || "Not provided"}
+
+Original lead message:
+${lead.initial_message || "Not provided"}
+
+Coach notes:
+${lead.notes || "Not provided"}
+
+IMPORTANT:
+This context is background information for personalization.
+
+The CURRENT MESSAGE provided by the coach is the message you should respond to directly.
+
+Use the selected lead context only when it is relevant.
+
+Do not mention hidden background information unless it naturally belongs in the response.
+
+Do not repeat the lead's profile or describe their stage, intent, or temperature.
+
+Treat the current message as the immediate conversation message that requires a reply.
+`;
+      }
+    }
+
     const allowed = await canGenerateReply(userId);
 
-if (!allowed) {
-  return new Response(
-    JSON.stringify({
-      error:
-        "You've reached your monthly Free plan limit. Upgrade to Pro for unlimited AI replies.",
-      code: "REPLY_LIMIT_REACHED",
-    }),
-    {
-      status: 403,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-}
-
-    const stream = await openrouter.chat.completions.create({
-      model: "openai/gpt-4.1-mini",
-      temperature: 0.8,
-      max_tokens: 250,
-
-      stream: true,
-
-      messages: [
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "You've reached your monthly Free plan limit. Upgrade to Pro for unlimited AI replies.",
+          code: "REPLY_LIMIT_REACHED",
+          limitReached: true,
+        }),
         {
-          role: "system",
-          content: `
+          status: 403,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
+    const stream =
+      await openrouter.chat.completions.create({
+        model: "openai/gpt-4.1-mini",
+        temperature: 0.8,
+        max_tokens: 250,
+
+        stream: true,
+
+        messages: [
+          {
+            role: "system",
+            content: `
 You are CoachDM AI, an expert sales assistant for online coaches.
 
 Your job is to help coaches turn interested leads into clients through natural, personalized conversations.
@@ -329,104 +390,110 @@ If the answer to #7 is YES, rewrite the response.
 
 Return ONLY the final coaching reply.
 `,
-        },
-        {
-          role: "user",
-          content: leadMessage,
-        },
-      ],
+          },
+          {
+            role: "user",
+            content: `
+${leadContext}
+
+CURRENT MESSAGE FROM THE LEAD:
+
+${leadMessage}
+`,
+          },
+        ],
+      });
+
+    const encoder = new TextEncoder();
+
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            const content =
+              chunk.choices[0]?.delta?.content;
+
+            if (content) {
+              controller.enqueue(
+                encoder.encode(content)
+              );
+            }
+          }
+
+          // -----------------------------------------
+          // TRACK SUCCESSFUL AI GENERATION
+          // -----------------------------------------
+
+          const { error: generationError } =
+            await supabaseAdmin
+              .from("reply_generations")
+              .insert({
+                clerk_user_id: userId,
+                tone,
+                length,
+              });
+
+          if (generationError) {
+            console.error(
+              "Failed to track reply generation:",
+              generationError
+            );
+          }
+
+          // -----------------------------------------
+          // INCREMENT MONTHLY REPLY USAGE
+          // -----------------------------------------
+
+          const updatedSubscription =
+            await incrementReplyUsage(userId);
+
+          if (!updatedSubscription) {
+            console.error(
+              "Failed to increment reply usage for:",
+              userId
+            );
+          }
+
+          controller.close();
+        } catch (error) {
+          console.error(
+            "Streaming error:",
+            error
+          );
+
+          controller.error(error);
+        }
+      },
     });
 
-   const encoder = new TextEncoder();
-
-const readableStream = new ReadableStream({
-  async start(controller) {
-    try {
-      for await (const chunk of stream) {
-        const content =
-          chunk.choices[0]?.delta?.content;
-
-        if (content) {
-          controller.enqueue(
-            encoder.encode(content)
-          );
-        }
-      }
-
-      // -----------------------------------------
-      // TRACK SUCCESSFUL AI GENERATION
-      // -----------------------------------------
-
-      const { error: generationError } =
-        await supabaseAdmin
-          .from("reply_generations")
-          .insert({
-            clerk_user_id: userId,
-            tone,
-            length,
-          });
-
-      if (generationError) {
-        console.error(
-          "Failed to track reply generation:",
-          generationError
-        );
-      }
-
-      // -----------------------------------------
-      // INCREMENT MONTHLY REPLY USAGE
-      // -----------------------------------------
-
-      const updatedSubscription =
-        await incrementReplyUsage(userId);
-
-      if (!updatedSubscription) {
-        console.error(
-          "Failed to increment reply usage for:",
-          userId
-        );
-      }
-
-      controller.close();
-    } catch (error) {
-      console.error(
-        "Streaming error:",
-        error
-      );
-
-      controller.error(error);
-    }
-  },
-});
-
-return new Response(readableStream, {
-  status: 200,
-  headers: {
-    "Content-Type":
-      "text/plain; charset=utf-8",
-    "Cache-Control":
-      "no-cache, no-transform",
-    Connection: "keep-alive",
-  },
-});
-} catch (error) {
-  console.error(
-    "Generate reply error:",
-    error
-  );
-
-  return new Response(
-    JSON.stringify({
-      success: false,
-      error:
-        "Something went wrong while generating the reply.",
-    }),
-    {
-      status: 500,
+    return new Response(readableStream, {
+      status: 200,
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type":
+          "text/plain; charset=utf-8",
+        "Cache-Control":
+          "no-cache, no-transform",
+        Connection: "keep-alive",
       },
-    }
-  );
-}
+    });
+  } catch (error) {
+    console.error(
+      "Generate reply error:",
+      error
+    );
+
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error:
+          "Something went wrong while generating the reply.",
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  }
 }

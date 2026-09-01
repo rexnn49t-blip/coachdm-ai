@@ -8,7 +8,7 @@ const features = [
   },
   {
     name: "Replies per Month",
-    free: "5",
+    free: "3",
     pro: "Unlimited",
   },
   {

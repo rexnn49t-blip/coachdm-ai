@@ -25,6 +25,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import type { Lead } from "@/lib/leads";
 
 const tones = [
   "Professional",
@@ -50,17 +51,21 @@ type InitialReply = {
 
 type ReplyGeneratorProps = {
   initialReply: InitialReply;
+  selectedLead: Lead | null;
 };
 
 export default function ReplyGenerator({
   initialReply,
+  selectedLead,
 }: ReplyGeneratorProps) {
     const loadedReplyId = useRef<string | null>(null);
 
   console.log("Initial Reply:", initialReply);
 
- const [leadMessage, setLeadMessage] = useState(
-  initialReply?.lead_message ?? ""
+const [leadMessage, setLeadMessage] = useState(
+  initialReply?.lead_message ??
+    selectedLead?.initial_message ??
+    ""
 );
 
 const [tone, setTone] = useState(
@@ -74,6 +79,9 @@ const [length, setLength] = useState(
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [autoSave, setAutoSave] =
+  useState(false);
+
+  const [showUpgradeModal, setShowUpgradeModal] =
   useState(false);
 
 useEffect(() => {
@@ -135,6 +143,21 @@ const [reply, setReply] = useState(
   const [showRewriteOptions, setShowRewriteOptions] =
   useState(false);
 
+// Update the message when a different lead is selected
+useEffect(() => {
+  if (initialReply) return;
+
+  if (!selectedLead) return;
+
+  setLeadMessage(
+    selectedLead.initial_message ?? ""
+  );
+
+  setReply("");
+  setLimitReached(false);
+}, [initialReply, selectedLead]);
+
+// Keyboard shortcuts
 useEffect(() => {
   function handleKeyDown(e: KeyboardEvent) {
     const active = document.activeElement;
@@ -144,7 +167,10 @@ useEffect(() => {
       active instanceof HTMLTextAreaElement;
 
     // Ctrl + Enter → Generate Reply
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    if (
+      (e.ctrlKey || e.metaKey) &&
+      e.key === "Enter"
+    ) {
       e.preventDefault();
 
       if (!loading && leadMessage.trim()) {
@@ -158,7 +184,10 @@ useEffect(() => {
     if (typing) return;
 
     // Ctrl + C → Copy Reply
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+    if (
+      (e.ctrlKey || e.metaKey) &&
+      e.key.toLowerCase() === "c"
+    ) {
       if (reply) {
         e.preventDefault();
         copyReply();
@@ -167,8 +196,11 @@ useEffect(() => {
       return;
     }
 
-    // Ctrl + S → Favorite
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+    // Ctrl + S → Save Reply
+    if (
+      (e.ctrlKey || e.metaKey) &&
+      e.key.toLowerCase() === "s"
+    ) {
       if (reply) {
         e.preventDefault();
         saveReply();
@@ -183,22 +215,22 @@ useEffect(() => {
     }
   }
 
-  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener(
+    "keydown",
+    handleKeyDown
+  );
 
   return () => {
-    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener(
+      "keydown",
+      handleKeyDown
+    );
   };
 }, [
   leadMessage,
   loading,
   reply,
-  tone,
-  length,
-  generateReply,
-  copyReply,
-  saveReply,
 ]);
-  
 async function generateReply() {
   if (!leadMessage.trim()) return;
 
@@ -212,11 +244,12 @@ async function generateReply() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        leadMessage,
-        tone,
-        length,
-      }),
+    body: JSON.stringify({
+  leadMessage,
+  tone,
+  length,
+  leadId: selectedLead?.id ?? null,
+}),
     });
 
     if (!res.ok) {
@@ -228,16 +261,17 @@ async function generateReply() {
         // Ignore JSON parsing error
       }
 
-      if (data.limitReached) {
-        setReply("");
-        setLimitReached(true);
+     if (data.limitReached) {
+  setReply("");
+  setLimitReached(true);
+  setShowUpgradeModal(true);
 
-        toast.error(
-          "You've reached your monthly limit."
-        );
+  toast.error(
+    "You've reached your monthly limit."
+  );
 
-        return;
-      }
+  return;
+}
 
       toast.error(
         data.error ||
@@ -295,40 +329,43 @@ async function generateReply() {
     }
 
     // Auto-save AFTER the complete reply has streamed
-    if (autoSave) {
-      try {
-        await fetch("/api/save-reply", {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            leadMessage,
-            reply: accumulatedReply,
-            tone,
-            length,
-          }),
-        });
+   if (autoSave) {
+  try {
+    const res = await fetch("/api/save-reply", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        leadMessage,
+        reply: accumulatedReply,
+        tone,
+        length,
+      }),
+    });
 
-        router.refresh();
+    const data = await res.json();
 
-        toast.success(
-          "✨ Reply generated & saved!"
-        );
-      } catch (error) {
-        console.error(
-          "Auto-save error:",
-          error
-        );
-
-        toast.error(
-          "Reply generated, but couldn't be saved."
-        );
-      }
-    } else {
-      router.refresh();
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.error || "Failed to auto-save reply."
+      );
     }
+
+    toast.success(
+      "✨ Reply generated & saved!"
+    );
+  } catch (error) {
+    console.error(
+      "Auto-save error:",
+      error
+    );
+
+    toast.error(
+      "Reply generated, but couldn't be saved."
+    );
+  }
+}
   } catch (err) {
     console.error(
       "Streaming generate error:",
@@ -391,28 +428,6 @@ async function rewriteReply(style: string) {
   toast.success("Reply copied!");
 }
 
-async function autoSaveReply() {
-  if (!reply) return;
-
-  try {
-    await fetch("/api/save-reply", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        leadMessage,
-        reply,
-        tone,
-        length,
-      }),
-    });
-
-    router.refresh();
-  } catch (error) {
-    console.error(error);
-  }
-}
 
 async function saveReply() {
   if (!reply) return;
@@ -489,9 +504,37 @@ async function saveReply() {
 
         </div>
 
-        {/* textarea */}
+        {/* Selected Lead */}
 
-        <textarea
+{selectedLead && (
+  <div className="mt-6 rounded-2xl border border-violet-500/20 bg-violet-500/[0.06] p-4">
+    <div className="flex items-center gap-3">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/15 text-sm font-bold text-violet-300">
+        {selectedLead.name
+          .charAt(0)
+          .toUpperCase()}
+      </div>
+
+      <div>
+        <p className="text-sm font-semibold text-white">
+          Generating reply for {selectedLead.name}
+        </p>
+
+        <p className="mt-1 text-xs capitalize text-zinc-400">
+          {selectedLead.stage.replace(
+            /_/g,
+            " "
+          )}{" "}
+          • {selectedLead.temperature}
+        </p>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* textarea */}
+
+<textarea
           value={leadMessage}
           onChange={(e) => setLeadMessage(e.target.value)}
           placeholder="Paste your lead's message here...
@@ -573,31 +616,7 @@ Examples:
 
       {/* Reply Box */}
       <div className="mt-6 flex min-h-[220px] sm:min-h-[280px] lg:min-h-[320px] items-start rounded-2xl border border-white/10 bg-black/30 p-4 sm:min-h-[320px] sm:p-5">
-        {limitReached ? (
-          <div className="flex w-full flex-col items-center justify-center text-center">
-            <div className="rounded-full bg-violet-500/20 p-4">
-              <Crown className="h-10 w-10 text-yellow-400" />
-            </div>
-
-            <h3 className="mt-6 text-2xl font-bold">
-              Monthly Limit Reached
-            </h3>
-
-            <p className="mt-3 max-w-sm text-sm text-zinc-400 sm:text-base">
-              You've used all <strong>3 free replies</strong> this month.
-              <br />
-              <br />
-              Upgrade to Pro to continue generating unlimited AI replies.
-            </p>
-
-            <button
-              onClick={() => router.push("/pricing")}
-              className="mt-8 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 px-8 py-4 font-semibold transition-all hover:scale-105 hover:shadow-[0_0_35px_rgba(139,92,246,.45)]"
-            >
-              Upgrade to Pro
-            </button>
-          </div>
-       ) : loading && !reply ? (
+       {loading && !reply ? (
   <div className="flex items-center gap-2 text-zinc-400">
     <div className="h-2 w-2 animate-bounce rounded-full bg-violet-400" />
     <div className="h-2 w-2 animate-bounce rounded-full bg-violet-400 [animation-delay:.15s]" />
@@ -614,140 +633,294 @@ Examples:
         )}
       </div>
 
-      {/* Action Buttons */}
-      {!limitReached && (
-        <>
-          <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <button
-              onClick={copyReply}
-              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium transition hover:bg-white/10 sm:text-base"
-            >
-              <Copy className="h-4 w-4" />
-              Copy
-            </button>
+     {/* Action Buttons */}
+{!limitReached && (
+  <>
+    <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+      
+      {/* Copy */}
+     <button
+  onClick={copyReply}
+  disabled={
+    !reply ||
+    loading ||
+    rewriting ||
+    saving
+  }
+  className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 sm:text-base"
+>
+  <Copy className="h-4 w-4" />
+  Copy
+</button>
 
-            <button
-              onClick={generateReply}
-              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium transition hover:bg-white/10 sm:text-base"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Retry
-            </button>
+      {/* Retry */}
+     <button
+  onClick={generateReply}
+  disabled={loading || rewriting || saving}
+  className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 sm:text-base"
+>
+  <RotateCcw
+    className={`h-4 w-4 ${
+      loading ? "animate-spin" : ""
+    }`}
+  />
 
-            <button
-              onClick={saveReply}
-              disabled={saving}
-              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 sm:text-base"
-            >
-              <Star className="h-4 w-4" />
-              {saving ? "Saving..." : "Save"}
-            </button>
-          </div>
+  {loading ? "Generating..." : "Retry"}
+</button>
 
-          {/* Improve with AI */}
-          {reply && (
-            <div className="mt-6 border-t border-white/10 pt-6">
-              <button
-                onClick={() =>
-                  setShowRewriteOptions((prev) => !prev)
-                }
-                className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4 transition hover:bg-white/10"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-violet-500/10 p-2">
-                    <Wand2 className="h-5 w-5 text-violet-400" />
-                  </div>
+      {/* Save */}
+     <button
+  onClick={saveReply}
+  disabled={
+    !reply ||
+    loading ||
+    rewriting ||
+    saving
+  }
+  className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 sm:text-base"
+>
+  <Star className="h-4 w-4" />
 
-                  <div className="text-left">
-                    <p className="font-semibold">
-                      Improve with AI
-                    </p>
+  {saving ? "Saving..." : "Save"}
+</button>
+    </div>
 
-                    <p className="text-sm text-zinc-500">
-                      Rewrite this reply instantly
-                    </p>
-                  </div>
-                </div>
+    {/* Improve with AI */}
+{reply && (
+  <div className="mt-6 border-t border-white/10 pt-6">
+    <button
+      onClick={() =>
+        setShowRewriteOptions((prev) => !prev)
+      }
+      disabled={rewriting || loading || saving}
+      className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      <div className="flex items-center gap-3">
+        <div className="rounded-xl bg-violet-500/10 p-2">
+          <Wand2 className="h-5 w-5 text-violet-400" />
+        </div>
 
-                {showRewriteOptions ? (
-                  <ChevronUp className="h-5 w-5 text-zinc-400" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-zinc-400" />
-                )}
-              </button>
+        <div className="text-left">
+          <p className="font-semibold">
+            Improve with AI
+          </p>
 
-              {showRewriteOptions && (
-                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+          <p className="text-sm text-zinc-500">
+            {rewriting
+              ? "Improving your reply..."
+              : "Rewrite this reply instantly"}
+          </p>
+        </div>
+      </div>
 
-                  <button
-                    onClick={() => rewriteReply("shorter")}
-                    disabled={rewriting}
-                    className="rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-violet-500/40 hover:bg-white/10"
-                  >
-                    ✂️
-                    <div className="mt-2 text-sm">
-                      Shorter
-                    </div>
-                  </button>
-
-                 <button
-                  onClick={() => rewriteReply("cta")}
-                  disabled={rewriting}
-                  className="rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-violet-500/40 hover:bg-white/10"
-                   >
-                   🎯
-                  <div className="mt-2 text-sm">
-                   Stronger CTA
-                   </div>
-                   </button>
-
-                  <button
-                    onClick={() => rewriteReply("professional")}
-                    disabled={rewriting}
-                    className="rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-sky-500/40 hover:bg-white/10"
-                  >
-                    💼
-                    <div className="mt-2 text-sm">
-                      Professional
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => rewriteReply("persuasive")}
-                    disabled={rewriting}
-                    className="rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-orange-500/40 hover:bg-white/10"
-                  >
-                    🔥
-                    <div className="mt-2 text-sm">
-                      Persuasive
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => rewriteReply("confident")}
-                    disabled={rewriting}
-                    className="rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-green-500/40 hover:bg-white/10"
-                  >
-                    🧠
-                    <div className="mt-2 text-sm">
-                      Confident
-                    </div>
-                  </button>
-                </div>
-              )}
-
-              {rewriting && (
-                <div className="mt-5 text-center text-sm text-violet-300">
-                  ✨ Improving your reply...
-                </div>
-              )}
-            </div>
-          )}
-        </>
+      {showRewriteOptions ? (
+        <ChevronUp className="h-5 w-5 text-zinc-400" />
+      ) : (
+        <ChevronDown className="h-5 w-5 text-zinc-400" />
       )}
+    </button>
+
+    {showRewriteOptions && (
+      <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+        
+        {/* Shorter */}
+        <button
+          onClick={() => rewriteReply("shorter")}
+          disabled={rewriting || loading || saving}
+          className="rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-violet-500/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          ✂️
+          <div className="mt-2 text-sm">
+            Shorter
+          </div>
+        </button>
+
+        {/* Stronger CTA */}
+        <button
+          onClick={() => rewriteReply("cta")}
+          disabled={rewriting || loading || saving}
+          className="rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-violet-500/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          🎯
+          <div className="mt-2 text-sm">
+            Stronger CTA
+          </div>
+        </button>
+
+        {/* Professional */}
+        <button
+          onClick={() => rewriteReply("professional")}
+          disabled={rewriting || loading || saving}
+          className="rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-sky-500/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          💼
+          <div className="mt-2 text-sm">
+            Professional
+          </div>
+        </button>
+
+        {/* Persuasive */}
+        <button
+          onClick={() => rewriteReply("persuasive")}
+          disabled={rewriting || loading || saving}
+          className="rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-orange-500/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          🔥
+          <div className="mt-2 text-sm">
+            Persuasive
+          </div>
+        </button>
+
+        {/* Confident */}
+        <button
+          onClick={() => rewriteReply("confident")}
+          disabled={rewriting || loading || saving}
+          className="rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-green-500/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          🧠
+          <div className="mt-2 text-sm">
+            Confident
+          </div>
+        </button>
+      </div>
+    )}
+
+    {rewriting && (
+      <div className="mt-5 flex items-center justify-center gap-2 text-sm text-violet-300">
+        <Sparkles className="h-4 w-4 animate-pulse" />
+        Improving your reply...
+      </div>
+    )}
+  </div>
+)}
+           
+        </>
+            )}
     </div>
   </div>
 )}
+
+{/* Upgrade Popup */}
+{showUpgradeModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 sm:p-6">
+    {/* Background */}
+    <div
+      className="absolute inset-0 bg-black/80 backdrop-blur-md"
+      onClick={() => setShowUpgradeModal(false)}
+    />
+
+    {/* Glow */}
+    <div className="absolute h-[500px] w-[500px] rounded-full bg-violet-600/20 blur-[120px]" />
+
+    {/* Popup */}
+    <div className="relative z-10 w-full max-w-2xl overflow-hidden rounded-[2rem] border border-violet-500/25 bg-[#0c0c10] shadow-2xl shadow-violet-500/20">
+
+      {/* Top gradient */}
+      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-violet-600/20 via-purple-600/10 to-transparent" />
+
+      {/* Close button */}
+      <button
+        onClick={() => setShowUpgradeModal(false)}
+        className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/30 text-zinc-400 transition hover:bg-white/10 hover:text-white"
+      >
+        ✕
+      </button>
+
+      <div className="relative px-6 py-10 sm:px-12 sm:py-12">
+
+        {/* Crown */}
+        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-3xl border border-yellow-400/20 bg-gradient-to-br from-yellow-400/20 to-violet-500/20 shadow-[0_0_60px_rgba(139,92,246,.25)]">
+          <Crown className="h-12 w-12 text-yellow-400" />
+        </div>
+
+        {/* Heading */}
+        <div className="mx-auto mt-8 max-w-xl text-center">
+          <div className="inline-flex rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-1.5 text-xs font-medium text-violet-300">
+            FREE PLAN LIMIT REACHED
+          </div>
+
+          <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-5xl">
+            Keep the conversation
+            <span className="block bg-gradient-to-r from-violet-400 to-purple-300 bg-clip-text text-transparent">
+              moving forward.
+            </span>
+          </h2>
+
+          <p className="mt-5 text-sm leading-7 text-zinc-400 sm:text-base">
+            You've used all{" "}
+            <span className="font-semibold text-white">
+              3 free AI replies
+            </span>{" "}
+            available this month.
+          </p>
+
+          <p className="mt-2 text-sm leading-7 text-zinc-500 sm:text-base">
+            Upgrade to Pro and continue creating personalized,
+            high-converting replies for your coaching leads.
+          </p>
+        </div>
+
+        {/* Features */}
+        <div className="mt-10 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-center">
+            <div className="text-xl">✨</div>
+
+            <p className="mt-2 text-sm font-semibold text-white">
+              Unlimited Replies
+            </p>
+
+            <p className="mt-1 text-xs text-zinc-500">
+              Generate whenever you need
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-center">
+            <div className="text-xl">⚡</div>
+
+            <p className="mt-2 text-sm font-semibold text-white">
+              Faster Workflow
+            </p>
+
+            <p className="mt-1 text-xs text-zinc-500">
+              Save time responding to leads
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-center">
+            <div className="text-xl">🎯</div>
+
+            <p className="mt-2 text-sm font-semibold text-white">
+              Convert More Leads
+            </p>
+
+            <p className="mt-1 text-xs text-zinc-500">
+              Better replies for every lead
+            </p>
+          </div>
+        </div>
+
+        {/* Upgrade button */}
+        <button
+          onClick={() => router.push("/pricing")}
+          className="mt-8 flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 text-base font-semibold text-white transition-all hover:-translate-y-1 hover:shadow-[0_0_45px_rgba(139,92,246,.45)] sm:text-lg"
+        >
+          <Crown className="h-5 w-5 text-yellow-300" />
+          Upgrade to Pro
+          <span className="text-violet-200">→</span>
+        </button>
+
+        {/* Maybe later */}
+        <button
+          onClick={() => setShowUpgradeModal(false)}
+          className="mx-auto mt-5 block text-sm text-zinc-500 transition hover:text-white"
+        >
+          Maybe later, I'll wait until next month
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 </section>
 );
 }
