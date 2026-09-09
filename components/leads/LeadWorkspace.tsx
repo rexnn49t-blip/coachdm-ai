@@ -20,6 +20,7 @@ import RecordClientReply from "@/components/leads/RecordClientReply";
 import AddNoteModal from "@/components/leads/AddNoteModal";
 import GenerateReplyButton from "@/components/leads/GenerateReplyButton";
 import ConversationHistoryButton from "@/components/leads/ConversationHistoryButton";
+import SmartFollowUp from "@/components/leads/SmartFollowUp";
 
 
 type LeadWorkspaceProps = {
@@ -198,6 +199,7 @@ export default function LeadWorkspace({
               currentTemperature={lead.temperature}
               currentStage={lead.stage}
             />
+            <SmartFollowUp leadId={lead.id} />
 
             {/* Conversation */}
             <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 backdrop-blur-xl">

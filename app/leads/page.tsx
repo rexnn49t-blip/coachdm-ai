@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { getLeads } from "@/lib/leads";
+import DailyCoachBrief from "@/components/dashboard/DailyCoachBrief";
 
 export default async function LeadsPage() {
   const { userId } = await auth();
@@ -70,6 +71,14 @@ export default async function LeadsPage() {
           </Link>
         </div>
 
+        {/* ========================================================= */}
+        {/* DAILY COACH BRIEF                                        */}
+        {/* ========================================================= */}
+
+        <section className="mb-10">
+          <DailyCoachBrief clerkUserId={userId} />
+        </section>
+
         {/* ================= EMPTY STATE ================= */}
         {leads.length === 0 ? (
           <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center backdrop-blur-xl sm:p-14">
@@ -94,6 +103,7 @@ export default async function LeadsPage() {
                 className="group mt-8 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-violet-500"
               >
                 <Plus className="h-4 w-4" />
+
                 Add Your First Lead
 
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -122,11 +132,13 @@ export default async function LeadsPage() {
               </div>
 
               <Link
-                href="/dashboard"
+                href="/dashboard?view=generator"
                 className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-medium text-zinc-300 transition hover:border-violet-500/30 hover:bg-violet-500/10 hover:text-violet-300"
               >
                 <Sparkles className="h-4 w-4" />
+
                 AI Reply Generator
+
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </section>
