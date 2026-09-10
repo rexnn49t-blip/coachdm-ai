@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Pencil, Check, X } from "lucide-react";
+import { Pencil, Check, X, ShieldCheck } from "lucide-react";
 
 export default function ProfileCard() {
   const { user, isLoaded } = useUser();
@@ -14,13 +14,13 @@ export default function ProfileCard() {
 
   if (!isLoaded) {
     return (
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
-        <div className="flex animate-pulse items-center gap-6">
-          <div className="h-20 w-20 rounded-full bg-white/10" />
+      <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-8">
+        <div className="flex animate-pulse items-center gap-8">
+          <div className="h-20 w-20 shrink-0 rounded-full bg-white/[0.08]" />
 
           <div className="space-y-3">
-            <div className="h-6 w-40 rounded bg-white/10" />
-            <div className="h-4 w-56 rounded bg-white/10" />
+            <div className="h-6 w-40 rounded-md bg-white/[0.08]" />
+            <div className="h-4 w-56 rounded-md bg-white/[0.06]" />
           </div>
         </div>
       </section>
@@ -68,98 +68,108 @@ export default function ProfileCard() {
   };
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-
+    <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-8 sm:p-9">
+      <div className="flex flex-col gap-8 sm:flex-row sm:items-center">
         {/* Avatar */}
         <Image
-          src={
-            user.imageUrl ||
-            "https://placehold.co/120x120"
-          }
+          src={user.imageUrl || "https://placehold.co/120x120"}
           alt="Profile"
-          width={80}
-          height={80}
-          className="rounded-full border border-white/10 object-cover"
+          width={88}
+          height={88}
+          className="h-[88px] w-[88px] shrink-0 rounded-full border border-white/[0.10] object-cover"
         />
 
-        {/* User Info */}
-        <div className="flex-1">
-
+        {/* User Information */}
+        <div className="min-w-0 flex-1">
           {!editing ? (
             <>
+              {/* Name */}
               <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-[26px]">
                   {displayName}
                 </h2>
 
                 <button
+                  type="button"
                   onClick={startEditing}
-                  className="rounded-lg p-2 text-zinc-400 transition hover:bg-white/10 hover:text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-200"
                   title="Edit name"
+                  aria-label="Edit name"
                 >
-                  <Pencil className="h-4 w-4" />
+                  <Pencil className="h-3.5 w-3.5" />
                 </button>
               </div>
 
-              <p className="mt-1 text-zinc-400">
-                {user.primaryEmailAddress?.emailAddress}
+              {/* Email */}
+              <p className="mt-2.5 text-sm text-zinc-400">
+                {user.primaryEmailAddress?.emailAddress ||
+                  "No email address"}
               </p>
+
+              {/* Security */}
+              <div className="mt-6 flex items-start gap-3.5">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-zinc-600" />
+
+                <p className="text-xs leading-5 text-zinc-600">
+                  Your account is securely managed through Clerk
+                  Authentication.
+                </p>
+              </div>
             </>
           ) : (
+            /* Editing */
             <div>
-              <label className="mb-2 block text-sm text-zinc-400">
-                Your Name
-              </label>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-white">
+                  Edit your name
+                </p>
 
-              <div className="flex flex-col gap-3 sm:flex-row">
+                <span className="text-xs text-zinc-600">
+                  Profile
+                </span>
+              </div>
+
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoFocus
                   placeholder="Enter your name"
-                  className="w-full max-w-sm rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
+                  className="w-full max-w-sm rounded-xl border border-white/[0.10] bg-black/30 px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-violet-500/50"
                 />
 
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={saveName}
-                    disabled={
-                      saving ||
-                      !name.trim()
-                    }
-                    className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-3 font-medium text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    disabled={saving || !name.trim()}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-xs font-semibold text-white transition-colors hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <Check className="h-4 w-4" />
+                    <Check className="h-3.5 w-3.5" />
 
                     {saving ? "Saving..." : "Save"}
                   </button>
 
                   <button
+                    type="button"
                     onClick={cancelEditing}
                     disabled={saving}
-                    className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-zinc-300 transition hover:bg-white/10 hover:text-white disabled:opacity-40"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] px-4 py-3 text-xs font-medium text-zinc-400 transition-colors hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
 
                     Cancel
                   </button>
                 </div>
               </div>
 
-              <p className="mt-2 text-xs text-zinc-500">
-                This name will be used throughout your CoachDM AI account.
+              <p className="mt-3 text-xs leading-5 text-zinc-600">
+                This name will be used throughout your CoachDM AI
+                account.
               </p>
             </div>
           )}
-
-          {!editing && (
-            <p className="mt-4 text-sm text-zinc-500">
-              Your account is securely managed through Clerk Authentication.
-            </p>
-          )}
-
         </div>
       </div>
     </section>
