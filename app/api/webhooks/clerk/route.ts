@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
+import { clerkClient } from "@clerk/nextjs/server";
 
 import { sendEmail } from "@/lib/send-email";
 
@@ -13,15 +14,15 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const user = evt.data.user;
+    const userId = evt.data.user_id;
 
-    if (!user) {
+    if (!userId) {
       console.error(
-        "Clerk webhook: user information missing."
+        "Clerk webhook: user ID missing from session."
       );
 
       return new Response(
-        "User information missing",
+        "User ID missing",
         {
           status: 400,
         }
@@ -29,34 +30,34 @@ export async function POST(req: NextRequest) {
     }
 
     /*
-     * Find the primary email directly from
-     * the webhook payload.
+     * session.created contains session data.
+     * Fetch the full Clerk user using the
+     * Production Clerk Backend API.
      */
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+
     const primaryEmailId =
-      user.primary_email_address_id;
+      user.primaryEmailAddressId;
 
     const primaryEmail =
-      user.email_addresses?.find(
+      user.emailAddresses.find(
         (email) =>
           email.id === primaryEmailId
       );
 
     const email =
-      primaryEmail?.email_address;
+      primaryEmail?.emailAddress;
 
     if (!email) {
       console.error(
         "Clerk webhook: no primary email found.",
         {
-          userId: user.id,
+          userId,
           primaryEmailId,
         }
       );
 
-      /*
-       * Return 200 so Clerk doesn't repeatedly
-       * retry an event that we cannot email.
-       */
       return new Response(
         "No email address available",
         {
@@ -66,9 +67,9 @@ export async function POST(req: NextRequest) {
     }
 
     const firstName =
-      user.first_name || "there";
+      user.firstName || "there";
 
-    await sendEmail({
+    const emailResult = await sendEmail({
       to: email,
 
       subject:
@@ -153,6 +154,24 @@ If you don't recognize this sign-in, please secure your account immediately.
 CoachDM AI`,
     });
 
+    if (!emailResult.success) {
+      console.error(
+        "Login notification email failed:",
+        emailResult.error
+      );
+
+      /*
+       * Return 500 so Clerk knows the webhook
+       * processing failed and can retry.
+       */
+      return new Response(
+        "Email sending failed",
+        {
+          status: 500,
+        }
+      );
+    }
+
     console.log(
       `Login notification sent to ${email}`
     );
@@ -170,9 +189,9 @@ CoachDM AI`,
     );
 
     return new Response(
-      "Webhook verification failed",
+      "Webhook processing failed",
       {
-        status: 400,
+        status: 500,
       }
     );
   }

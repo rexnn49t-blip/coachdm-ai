@@ -13,7 +13,7 @@ export default function GenerateReplyButton({
 
   function handleGenerateReply() {
     router.push(
-      `/dashboard?leadId=${leadId}`
+      `/dashboard?view=generator&leadId=${leadId}`
     );
   }
 
