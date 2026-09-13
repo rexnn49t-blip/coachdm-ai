@@ -9,6 +9,10 @@ export async function POST(req: NextRequest) {
     // Verify Clerk webhook
     const evt = await verifyWebhook(req);
 
+    if (req.headers.get("webhook-test") === "true") {
+  return new Response("Webhook test received", { status: 200 });
+}
+
     // We only need sign-in events
     if (evt.type !== "session.created") {
       return new Response("Event ignored", {
