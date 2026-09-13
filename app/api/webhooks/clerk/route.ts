@@ -6,6 +6,55 @@ import { sendEmail } from "@/lib/send-email";
 
 export async function POST(req: NextRequest) {
   try {
+    console.log("=== CLERK ENV DIAGNOSTIC ===");
+
+const clerkSecret = process.env.CLERK_SECRET_KEY;
+const clerkPublishable =
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+console.log(
+  "CLERK_SECRET_KEY exists:",
+  Boolean(clerkSecret)
+);
+
+console.log(
+  "CLERK_SECRET_KEY length:",
+  clerkSecret?.length ?? 0
+);
+
+console.log(
+  "CLERK_SECRET_KEY non-ASCII:",
+  clerkSecret
+    ? [...clerkSecret]
+        .map((char, index) => ({
+          index,
+          code: char.charCodeAt(0),
+        }))
+        .filter((item) => item.code > 255)
+    : []
+);
+
+console.log(
+  "PUBLISHABLE_KEY exists:",
+  Boolean(clerkPublishable)
+);
+
+console.log(
+  "PUBLISHABLE_KEY length:",
+  clerkPublishable?.length ?? 0
+);
+
+console.log(
+  "PUBLISHABLE_KEY non-ASCII:",
+  clerkPublishable
+    ? [...clerkPublishable]
+        .map((char, index) => ({
+          index,
+          code: char.charCodeAt(0),
+        }))
+        .filter((item) => item.code > 255)
+    : []
+);
     const body = await req.text();
 
     const signingSecret =
