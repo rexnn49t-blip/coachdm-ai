@@ -6,6 +6,62 @@ import { sendEmail } from "@/lib/send-email";
 
 export async function POST(req: NextRequest) {
   try {
+    const signingSecret = process.env.CLERK_WEBHOOK_SIGNING_SECRET;
+
+    console.log("=== CLERK WEBHOOK DIAGNOSTIC ===");
+
+    console.log(
+      "Signing secret exists:",
+      Boolean(signingSecret)
+    );
+
+    console.log(
+      "Signing secret length:",
+      signingSecret?.length ?? 0
+    );
+
+    if (signingSecret) {
+      const invalidSecretChars = Array.from(signingSecret)
+        .map((char, index) => ({
+          index,
+          codePoint: char.codePointAt(0),
+        }))
+        .filter(
+          ({ codePoint }) =>
+            codePoint !== undefined && codePoint > 127
+        );
+
+      console.log(
+        "Non-ASCII characters in signing secret:",
+        invalidSecretChars
+      );
+    }
+
+    const headerDiagnostics = Array.from(req.headers.entries()).map(
+      ([name, value]) => {
+        const invalidCharacters = Array.from(value)
+          .map((char, index) => ({
+            index,
+            codePoint: char.codePointAt(0),
+          }))
+          .filter(
+            ({ codePoint }) =>
+              codePoint !== undefined && codePoint > 127
+          );
+
+        return {
+          name,
+          length: value.length,
+          nonAscii: invalidCharacters,
+        };
+      }
+    );
+
+    console.log(
+      "Webhook header diagnostics:",
+      headerDiagnostics
+    );
+
     const evt = await verifyWebhook(req);
 
     if (evt.type !== "session.created") {
