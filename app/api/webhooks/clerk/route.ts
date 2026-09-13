@@ -1,141 +1,23 @@
 import { NextRequest } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
-import { Webhook } from "svix";
+import { verifyWebhook } from "@clerk/nextjs/webhooks";
 
 import { sendEmail } from "@/lib/send-email";
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("=== CLERK ENV DIAGNOSTIC ===");
+    // Verify Clerk webhook
+    const evt = await verifyWebhook(req);
 
-const clerkSecret = process.env.CLERK_SECRET_KEY;
-const clerkPublishable =
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-console.log(
-  "CLERK_SECRET_KEY exists:",
-  Boolean(clerkSecret)
-);
-
-console.log(
-  "CLERK_SECRET_KEY length:",
-  clerkSecret?.length ?? 0
-);
-
-console.log(
-  "CLERK_SECRET_KEY non-ASCII:",
-  clerkSecret
-    ? [...clerkSecret]
-        .map((char, index) => ({
-          index,
-          code: char.charCodeAt(0),
-        }))
-        .filter((item) => item.code > 255)
-    : []
-);
-
-console.log(
-  "PUBLISHABLE_KEY exists:",
-  Boolean(clerkPublishable)
-);
-
-console.log(
-  "PUBLISHABLE_KEY length:",
-  clerkPublishable?.length ?? 0
-);
-
-console.log(
-  "PUBLISHABLE_KEY non-ASCII:",
-  clerkPublishable
-    ? [...clerkPublishable]
-        .map((char, index) => ({
-          index,
-          code: char.charCodeAt(0),
-        }))
-        .filter((item) => item.code > 255)
-    : []
-);
-    const body = await req.text();
-
-    const signingSecret =
-      process.env.CLERK_WEBHOOK_SIGNING_SECRET;
-
-    if (!signingSecret) {
-      console.error(
-        "Clerk webhook: signing secret is missing."
-      );
-
-      return new Response(
-        "Webhook signing secret missing",
-        {
-          status: 500,
-        }
-      );
+    // We only need sign-in events
+    if (evt.type !== "session.created") {
+      return new Response("Event ignored", {
+        status: 200,
+      });
     }
 
-    const svixId =
-      req.headers.get("svix-id");
-
-    const svixTimestamp =
-      req.headers.get("svix-timestamp");
-
-    const svixSignature =
-      req.headers.get("svix-signature");
-
-    if (
-      !svixId ||
-      !svixTimestamp ||
-      !svixSignature
-    ) {
-      console.error(
-        "Clerk webhook: missing Svix headers."
-      );
-
-      return new Response(
-        "Missing webhook headers",
-        {
-          status: 400,
-        }
-      );
-    }
-
-    const webhook =
-      new Webhook(signingSecret);
-
-    /*
-     * Svix verification.
-     *
-     * We cast the verifier itself to any because
-     * the installed Svix TypeScript definitions are
-     * conflicting with the supported verify() call.
-     */
-    const evt = (webhook as any).verify(
-      body,
-      {
-        "svix-id": svixId,
-        "svix-timestamp": svixTimestamp,
-        "svix-signature": svixSignature,
-      }
-    ) as {
-      type: string;
-      data: {
-        user_id?: string;
-      };
-    };
-
-    if (
-      evt.type !== "session.created"
-    ) {
-      return new Response(
-        "Event ignored",
-        {
-          status: 200,
-        }
-      );
-    }
-
-    const userId =
-      evt.data?.user_id;
+    // Get Clerk user ID
+    const userId = evt.data.user_id;
 
     if (!userId) {
       console.error(
@@ -150,14 +32,13 @@ console.log(
       );
     }
 
-    const client =
-      await clerkClient();
+    // Get user from Clerk
+    const client = await clerkClient();
 
     const user =
-      await client.users.getUser(
-        userId
-      );
+      await client.users.getUser(userId);
 
+    // Find primary email
     const primaryEmailId =
       user.primaryEmailAddressId;
 
@@ -190,6 +71,7 @@ console.log(
     const firstName =
       user.firstName || "there";
 
+    // Send sign-in notification email
     const emailResult =
       await sendEmail({
         to: email,
