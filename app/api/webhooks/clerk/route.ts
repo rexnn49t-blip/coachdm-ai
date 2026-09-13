@@ -1,82 +1,96 @@
 import { NextRequest } from "next/server";
-import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { clerkClient } from "@clerk/nextjs/server";
+import { Webhook } from "svix";
 
 import { sendEmail } from "@/lib/send-email";
 
 export async function POST(req: NextRequest) {
   try {
-    const signingSecret = process.env.CLERK_WEBHOOK_SIGNING_SECRET;
+    const body = await req.text();
 
-    console.log("=== CLERK WEBHOOK DIAGNOSTIC ===");
+    const signingSecret =
+      process.env.CLERK_WEBHOOK_SIGNING_SECRET;
 
-    console.log(
-      "Signing secret exists:",
-      Boolean(signingSecret)
-    );
+    if (!signingSecret) {
+      console.error(
+        "Clerk webhook: signing secret is missing."
+      );
 
-    console.log(
-      "Signing secret length:",
-      signingSecret?.length ?? 0
-    );
-
-    if (signingSecret) {
-      const invalidSecretChars = Array.from(signingSecret)
-        .map((char, index) => ({
-          index,
-          codePoint: char.codePointAt(0),
-        }))
-        .filter(
-          ({ codePoint }) =>
-            codePoint !== undefined && codePoint > 127
-        );
-
-      console.log(
-        "Non-ASCII characters in signing secret:",
-        invalidSecretChars
+      return new Response(
+        "Webhook signing secret missing",
+        {
+          status: 500,
+        }
       );
     }
 
-    const headerDiagnostics = Array.from(req.headers.entries()).map(
-      ([name, value]) => {
-        const invalidCharacters = Array.from(value)
-          .map((char, index) => ({
-            index,
-            codePoint: char.codePointAt(0),
-          }))
-          .filter(
-            ({ codePoint }) =>
-              codePoint !== undefined && codePoint > 127
-          );
+    const svixId =
+      req.headers.get("svix-id");
 
-        return {
-          name,
-          length: value.length,
-          nonAscii: invalidCharacters,
-        };
-      }
-    );
+    const svixTimestamp =
+      req.headers.get("svix-timestamp");
 
-    console.log(
-      "Webhook header diagnostics:",
-      headerDiagnostics
-    );
+    const svixSignature =
+      req.headers.get("svix-signature");
 
-    const evt = await verifyWebhook(req, {
-  signingSecret: process.env.CLERK_WEBHOOK_SIGNING_SECRET!,
-});
+    if (
+      !svixId ||
+      !svixTimestamp ||
+      !svixSignature
+    ) {
+      console.error(
+        "Clerk webhook: missing Svix headers."
+      );
 
-    if (evt.type !== "session.created") {
-      return new Response("Event ignored", {
-        status: 200,
-      });
+      return new Response(
+        "Missing webhook headers",
+        {
+          status: 400,
+        }
+      );
     }
 
-    const userId = evt.data.user_id;
+    const webhook =
+      new Webhook(signingSecret);
+
+    /*
+     * Svix verification.
+     *
+     * We cast the verifier itself to any because
+     * the installed Svix TypeScript definitions are
+     * conflicting with the supported verify() call.
+     */
+    const evt = (webhook as any).verify(
+      body,
+      {
+        "svix-id": svixId,
+        "svix-timestamp": svixTimestamp,
+        "svix-signature": svixSignature,
+      }
+    ) as {
+      type: string;
+      data: {
+        user_id?: string;
+      };
+    };
+
+    if (
+      evt.type !== "session.created"
+    ) {
+      return new Response(
+        "Event ignored",
+        {
+          status: 200,
+        }
+      );
+    }
+
+    const userId =
+      evt.data?.user_id;
 
     if (!userId) {
       console.error(
-        "Clerk webhook: user ID missing from session."
+        "Clerk webhook: user ID missing."
       );
 
       return new Response(
@@ -87,13 +101,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    /*
-     * session.created contains session data.
-     * Fetch the full Clerk user using the
-     * Production Clerk Backend API.
-     */
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
+    const client =
+      await clerkClient();
+
+    const user =
+      await client.users.getUser(
+        userId
+      );
 
     const primaryEmailId =
       user.primaryEmailAddressId;
@@ -127,81 +141,82 @@ export async function POST(req: NextRequest) {
     const firstName =
       user.firstName || "there";
 
-    const emailResult = await sendEmail({
-      to: email,
+    const emailResult =
+      await sendEmail({
+        to: email,
 
-      subject:
-        "New sign-in to CoachDM AI",
+        subject:
+          "New sign-in to CoachDM AI",
 
-      html: `
-        <div style="
-          font-family: Arial, sans-serif;
-          max-width: 600px;
-          margin: 0 auto;
-          padding: 40px 20px;
-          color: #18181b;
-        ">
-
-          <h1 style="
-            margin-bottom: 8px;
-            font-size: 28px;
-          ">
-            Welcome back, ${firstName} 👋
-          </h1>
-
-          <p style="
-            font-size: 16px;
-            line-height: 1.6;
-            color: #52525b;
-          ">
-            Your CoachDM AI account was just signed in.
-          </p>
-
+        html: `
           <div style="
-            margin: 28px 0;
-            padding: 20px;
-            border-radius: 12px;
-            background: #f4f4f5;
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            color: #18181b;
           ">
+
+            <h1 style="
+              margin-bottom: 8px;
+              font-size: 28px;
+            ">
+              Welcome back, ${firstName} 👋
+            </h1>
 
             <p style="
-              margin: 0 0 8px;
-              font-weight: 600;
+              font-size: 16px;
+              line-height: 1.6;
+              color: #52525b;
             ">
-              Sign-in notification
+              Your CoachDM AI account was just signed in.
+            </p>
+
+            <div style="
+              margin: 28px 0;
+              padding: 20px;
+              border-radius: 12px;
+              background: #f4f4f5;
+            ">
+
+              <p style="
+                margin: 0 0 8px;
+                font-weight: 600;
+              ">
+                Sign-in notification
+              </p>
+
+              <p style="
+                margin: 0;
+                color: #52525b;
+                line-height: 1.5;
+              ">
+                If this was you, you can safely ignore
+                this email.
+              </p>
+
+            </div>
+
+            <p style="
+              font-size: 14px;
+              line-height: 1.6;
+              color: #71717a;
+            ">
+              If you don't recognize this sign-in,
+              please secure your account immediately.
             </p>
 
             <p style="
-              margin: 0;
-              color: #52525b;
-              line-height: 1.5;
+              margin-top: 32px;
+              font-size: 15px;
             ">
-              If this was you, you can safely ignore
-              this email.
+              <strong>CoachDM AI</strong>
             </p>
 
           </div>
+        `,
 
-          <p style="
-            font-size: 14px;
-            line-height: 1.6;
-            color: #71717a;
-          ">
-            If you don't recognize this sign-in,
-            please secure your account immediately.
-          </p>
-
-          <p style="
-            margin-top: 32px;
-            font-size: 15px;
-          ">
-            <strong>CoachDM AI</strong>
-          </p>
-
-        </div>
-      `,
-
-      text: `Welcome back, ${firstName}!
+        text: `Welcome back, ${firstName}!
 
 Your CoachDM AI account was just signed in.
 
@@ -210,7 +225,7 @@ If this was you, you can safely ignore this email.
 If you don't recognize this sign-in, please secure your account immediately.
 
 CoachDM AI`,
-    });
+      });
 
     if (!emailResult.success) {
       console.error(
@@ -218,10 +233,6 @@ CoachDM AI`,
         emailResult.error
       );
 
-      /*
-       * Return 500 so Clerk knows the webhook
-       * processing failed and can retry.
-       */
       return new Response(
         "Email sending failed",
         {
