@@ -62,7 +62,9 @@ export async function POST(req: NextRequest) {
       headerDiagnostics
     );
 
-    const evt = await verifyWebhook(req);
+    const evt = await verifyWebhook(req, {
+  signingSecret: process.env.CLERK_WEBHOOK_SIGNING_SECRET!,
+});
 
     if (evt.type !== "session.created") {
       return new Response("Event ignored", {
