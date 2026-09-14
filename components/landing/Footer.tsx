@@ -81,25 +81,37 @@ export default function Footer() {
 
             <ul className="mt-6 space-y-4 text-gray-400">
               <li>
-                <Link href="/#features" className="transition hover:text-white">
+                <Link
+                  href="/#features"
+                  className="transition hover:text-white"
+                >
                   Features
                 </Link>
               </li>
 
               <li>
-                <Link href="/pricing" className="transition hover:text-white">
+                <Link
+                  href="/pricing"
+                  className="transition hover:text-white"
+                >
                   Pricing
                 </Link>
               </li>
 
               <li>
-                <Link href="/dashboard" className="transition hover:text-white">
+                <Link
+                  href="/dashboard"
+                  className="transition hover:text-white"
+                >
                   Dashboard
                 </Link>
               </li>
 
               <li>
-                <Link href="/#faq" className="transition hover:text-white">
+                <Link
+                  href="/#faq"
+                  className="transition hover:text-white"
+                >
                   FAQs
                 </Link>
               </li>
@@ -153,20 +165,29 @@ export default function Footer() {
               </li>
 
               <li>
-                <Link href="#" className="transition hover:text-white">
+                <Link
+                  href="/privacy"
+                  className="transition hover:text-white"
+                >
                   Privacy Policy
                 </Link>
               </li>
 
               <li>
-                <Link href="#" className="transition hover:text-white">
+                <Link
+                  href="/terms"
+                  className="transition hover:text-white"
+                >
                   Terms of Service
                 </Link>
               </li>
 
               <li>
-                <Link href="#" className="transition hover:text-white">
-                  Cookie Policy
+                <Link
+                  href="/refunds"
+                  className="transition hover:text-white"
+                >
+                  Refund Policy
                 </Link>
               </li>
             </ul>
