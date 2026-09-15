@@ -10,33 +10,39 @@ import {
 const features = [
   {
     icon: MessageSquare,
-    title: "AI Replies",
-    description: "Generate personalized replies for every lead.",
+    title: "AI Reply Assistance",
+    description:
+      "Generate personalized replies based on the conversations you're already having with potential clients.",
   },
   {
     icon: CalendarCheck,
-    title: "Booking Messages",
-    description: "Guide prospects toward booking a call.",
+    title: "Call Booking Messages",
+    description:
+      "Create clear, natural messages that help move an ongoing conversation toward a call when appropriate.",
   },
   {
     icon: ShieldCheck,
     title: "Handle Objections",
-    description: "Respond confidently to pricing and hesitation.",
+    description:
+      "Get thoughtful response suggestions for pricing questions, hesitation, and common client concerns.",
   },
   {
     icon: Sparkles,
     title: "Multiple Tones",
-    description: "Friendly, Professional, Luxury, High Ticket and more.",
+    description:
+      "Choose from Professional, Confident, Empathetic, Persuasive, and other response styles.",
   },
   {
     icon: History,
     title: "Reply History",
-    description: "Access every reply you've ever generated.",
+    description:
+      "Keep access to the AI replies you've generated and review your previous conversation assistance.",
   },
   {
     icon: Zap,
     title: "Lightning Fast",
-    description: "Create high-converting replies in seconds.",
+    description:
+      "Get useful reply suggestions in seconds so you can respond to conversations more efficiently.",
   },
 ];
 
@@ -49,12 +55,12 @@ export default function Features() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="text-center">
           <h2 className="text-4xl font-bold">
-            Everything You Need to Convert More Leads
+            Everything You Need for Better Conversations
           </h2>
 
           <p className="mt-4 text-gray-400">
-            Built specifically for coaches who want to save time and close more
-            clients.
+            Built specifically for coaches who want to save time and communicate
+            more confidently with potential clients.
           </p>
         </div>
 

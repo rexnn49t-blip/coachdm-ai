@@ -1,27 +1,22 @@
 import Container from "@/components/ui/Container";
 import FadeIn from "@/components/ui/FadeIn";
-import AnimatedCounter from "@/components/ui/AnimatedCounter";
 
 const stats = [
   {
-    value: 25000,
-    suffix: "+",
-    label: "AI Replies Generated",
+    value: "AI",
+    label: "Personalized Reply Assistance",
   },
   {
-    value: 1200,
-    suffix: "+",
-    label: "Discovery Calls Booked",
+    value: "5+",
+    label: "Professional Response Tones",
   },
   {
-    value: 97,
-    suffix: "%",
-    label: "Customer Satisfaction",
+    value: "24/7",
+    label: "Available When You Need It",
   },
   {
-    value: 40,
-    suffix: "+",
-    label: "Countries Reached",
+    value: "1",
+    label: "Workspace for Your Conversations",
   },
 ];
 
@@ -32,17 +27,16 @@ export default function TrustedBy() {
         <FadeIn>
           <div className="text-center">
             <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-5 py-2 text-sm font-medium text-blue-400">
-              Trusted Worldwide
+              Built for Coaches
             </span>
 
             <h2 className="mt-6 text-4xl font-bold text-white md:text-5xl">
-              Helping Coaches Convert More Leads
+              A Smarter Way to Handle Conversations
             </h2>
 
             <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-gray-400">
-              Every day, coaches use CoachDM AI to respond faster, build trust,
-              and book more discovery calls with personalized AI-powered
-              conversations.
+              CoachDM AI helps coaches save time, organize conversations, and
+              create thoughtful responses with AI assistance.
             </p>
           </div>
         </FadeIn>
@@ -51,9 +45,8 @@ export default function TrustedBy() {
           {stats.map((item, index) => (
             <FadeIn key={item.label} delay={0.15 * index}>
               <div className="group rounded-3xl border border-zinc-800 bg-zinc-900 p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-500/10">
-                <div className="text-5xl font-extrabold text-white">
-                  <AnimatedCounter value={item.value} />
-                  {item.suffix}
+                <div className="text-4xl font-extrabold text-white md:text-5xl">
+                  {item.value}
                 </div>
 
                 <p className="mt-4 text-gray-400">

@@ -11,18 +11,18 @@ export default function CTA() {
 
       <Container className="relative z-10 text-center">
         <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-5 py-2 text-sm font-medium text-blue-400">
-          Start Growing Today
+          Get Started Today
         </span>
 
         <h2 className="mt-8 text-4xl font-bold text-white md:text-6xl">
-          Ready To Turn More
+          Ready To Have
           <br />
-          Conversations Into Clients?
+          Better Conversations?
         </h2>
 
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-400">
-          Join coaches using CoachDM AI to respond faster, book more discovery
-          calls, and grow their coaching business.
+          Use CoachDM AI to save time, get thoughtful reply suggestions, and
+          communicate more confidently with potential clients.
         </p>
 
         <div className="mt-12 flex justify-center gap-4">

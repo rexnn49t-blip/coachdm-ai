@@ -2,28 +2,31 @@ const faqs = [
   {
     question: "Who is CoachDM AI for?",
     answer:
-      "CoachDM AI is built for business coaches, life coaches, fitness coaches, consultants, mentors, and anyone who sells coaching services through direct messages.",
+      "CoachDM AI is built for business coaches, life coaches, fitness coaches, consultants, mentors, and other professionals who want AI assistance when communicating with potential clients.",
   },
   {
     question: "Do I need AI experience?",
     answer:
-      "No. Just paste your prospect's message, choose a tone, and CoachDM AI generates personalized replies instantly.",
+      "No. Simply paste a message from an existing conversation, choose a tone, and CoachDM AI generates a personalized reply suggestion in seconds.",
   },
   {
     question: "Can I try it for free?",
     answer:
-      "Yes. Our Free plan lets you generate AI replies every day before deciding to upgrade.",
+      "Yes. The Free plan includes 3 AI replies per month, so you can experience CoachDM AI before deciding whether to upgrade.",
   },
   {
     question: "What happens if I upgrade?",
     answer:
-      "You'll unlock unlimited generations, premium reply tones, objection handling, reply history, and future Pro features.",
+      "You'll unlock unlimited AI replies, premium reply tones, objection handling, reply history, and future Pro features.",
   },
 ];
 
 export default function FAQ() {
   return (
-    <section id="faq" className="bg-zinc-950 py-24 text-white">
+    <section
+      id="faq"
+      className="bg-zinc-950 py-24 text-white"
+    >
       <div className="mx-auto max-w-4xl px-6">
         <div className="text-center">
           <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm text-blue-400">

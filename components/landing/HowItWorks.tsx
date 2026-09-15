@@ -7,21 +7,21 @@ import {
 const steps = [
   {
     icon: MessageSquareText,
-    title: "Paste Your Prospect's Message",
+    title: "Bring In a Lead's Message",
     description:
-      "Copy any message from Instagram, WhatsApp, LinkedIn, Facebook, or email and paste it into CoachDM AI.",
+      "Paste a message from an existing conversation with a potential client into CoachDM AI.",
   },
   {
     icon: WandSparkles,
-    title: "Generate an AI Reply",
+    title: "Generate a Personalized Reply",
     description:
-      "Choose your tone and goal, then let CoachDM AI create a natural, personalized response in seconds.",
+      "Choose your tone and goal, then let CoachDM AI create a natural response tailored to the conversation.",
   },
   {
     icon: Copy,
-    title: "Copy & Send",
+    title: "Review & Send",
     description:
-      "Copy your favorite reply with one click and send it confidently to turn conversations into paying clients.",
+      "Review the suggested reply, make any changes you want, and send it through your usual communication channel.",
   },
 ];
 
@@ -39,14 +39,15 @@ export default function HowItWorks() {
           </span>
 
           <h2 className="mt-6 bg-gradient-to-r from-white via-blue-100 to-blue-500 bg-clip-text text-4xl font-bold text-transparent md:text-5xl">
-            Generate High-Converting Replies
+            Turn Conversations Into
             <br />
-            In 3 Simple Steps
+            Better Replies
           </h2>
 
           <p className="mt-6 text-lg leading-8 text-gray-400">
-            No prompt engineering. No copywriting experience. Just paste a
-            message, generate an AI reply, and send it with confidence.
+            No prompt engineering. No copywriting experience. Just bring in a
+            message from an existing conversation, get AI assistance, review
+            the response, and send it with confidence.
           </p>
         </div>
 

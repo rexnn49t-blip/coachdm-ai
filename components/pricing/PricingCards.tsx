@@ -252,7 +252,7 @@ export default function PricingCards() {
             >
               {loading
                 ? "Preparing checkout..."
-                : "Start Free Trial"}
+                : "Upgrade to pro"}
             </button>
 
           </div>

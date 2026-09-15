@@ -1,10 +1,10 @@
 import { Check } from "lucide-react";
 
 const freeFeatures = [
-  "20 AI replies per day",
+  "3 AI replies per month",
   "Reply Generator",
-  "Follow-up Messages",
-  "Booking Messages",
+  "Follow-up Assistance",
+  "Call Booking Assistance",
   "Basic Reply Tones",
 ];
 
@@ -34,7 +34,7 @@ export default function Pricing() {
           </h2>
 
           <p className="mt-4 text-gray-400">
-            Start free. Upgrade only when you're ready.
+            Start free. Upgrade only when you&apos;re ready.
           </p>
         </div>
 
