@@ -15,6 +15,8 @@ import {
 
 import { getLeads } from "@/lib/leads";
 import DailyCoachBrief from "@/components/dashboard/DailyCoachBrief";
+import LeadsHelpModal from "@/components/leads/LeadsHelpModal";
+import DeleteLeadButton from "@/components/leads/DeleteLeadButton";
 
 export default async function LeadsPage() {
   const { userId } = await auth();
@@ -61,6 +63,7 @@ export default async function LeadsPage() {
               {leads.length === 1 ? "lead" : "leads"} in your pipeline
             </p>
           </div>
+            <LeadsHelpModal />
 
           <Link
             href="/leads/new"
@@ -79,38 +82,101 @@ export default async function LeadsPage() {
           <DailyCoachBrief clerkUserId={userId} />
         </section>
 
-        {/* ================= EMPTY STATE ================= */}
-        {leads.length === 0 ? (
-          <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center backdrop-blur-xl sm:p-14">
-            <div className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/10 blur-[100px]" />
+    {/* ================= EMPTY STATE ================= */}
+{leads.length === 0 ? (
+  <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-8 backdrop-blur-xl sm:p-12">
+    {/* Subtle Glow */}
+    <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-violet-600/10 blur-[100px]" />
 
-            <div className="relative mx-auto max-w-md">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-violet-500/20 bg-violet-500/10">
-                <Users className="h-9 w-9 text-violet-400" />
-              </div>
+    <div className="relative mx-auto max-w-3xl">
+      {/* Header */}
+      <div className="text-center">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-violet-500/20 bg-violet-500/10">
+          <Users className="h-9 w-9 text-violet-400" />
+        </div>
 
-              <h2 className="mt-7 text-2xl font-bold">
-                Start building your pipeline
-              </h2>
+        <h2 className="mt-7 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          Let&apos;s get your first lead moving
+        </h2>
 
-              <p className="mt-3 text-sm leading-7 text-zinc-400 sm:text-base">
-                Add your first lead and keep track of every conversation,
-                follow-up, objection, and step toward becoming a client.
-              </p>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-zinc-400 sm:text-base">
+          Add someone you&apos;re currently talking to. CoachDM will help you
+          understand the conversation, recommend what to do next, and keep
+          track of follow-ups.
+        </p>
+      </div>
 
-              <Link
-                href="/leads/new"
-                className="group mt-8 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-violet-500"
-              >
-                <Plus className="h-4 w-4" />
+      {/* Simple Workflow */}
+      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+        {/* Step 1 */}
+        <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-5 text-left">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/10 text-sm font-semibold text-violet-300">
+            1
+          </div>
 
-                Add Your First Lead
+          <h3 className="mt-4 text-sm font-semibold text-white">
+            Add your lead
+          </h3>
 
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
-          </section>
-        ) : (
+          <p className="mt-2 text-xs leading-5 text-zinc-500">
+            Add their name, goal, and first message so CoachDM understands
+            the situation.
+          </p>
+        </div>
+
+        {/* Step 2 */}
+        <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-5 text-left">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/10 text-sm font-semibold text-violet-300">
+            2
+          </div>
+
+          <h3 className="mt-4 text-sm font-semibold text-white">
+            Know what to do next
+          </h3>
+
+          <p className="mt-2 text-xs leading-5 text-zinc-500">
+            CoachDM analyzes the lead and helps you move the conversation
+            forward.
+          </p>
+        </div>
+
+        {/* Step 3 */}
+        <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-5 text-left">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/10 text-sm font-semibold text-violet-300">
+            3
+          </div>
+
+          <h3 className="mt-4 text-sm font-semibold text-white">
+            Follow up & convert
+          </h3>
+
+          <p className="mt-2 text-xs leading-5 text-zinc-500">
+            Keep track of follow-ups, handle objections, and guide the lead
+            toward becoming a client.
+          </p>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="mt-9 text-center">
+        <Link
+          href="/leads/new"
+          className="group inline-flex items-center gap-2 rounded-xl bg-violet-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/30 transition hover:bg-violet-500"
+        >
+          <Plus className="h-4 w-4" />
+
+          Add Your First Lead
+
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </Link>
+
+        <p className="mt-3 text-xs text-zinc-600">
+          You can update the lead&apos;s journey as the conversation develops.
+        </p>
+      </div>
+    </div>
+  </section>
+) : (
           <>
             {/* ================= READY FOR CONVERSATION ================= */}
             <section className="mb-10 flex flex-col items-start justify-between gap-5 rounded-3xl border border-white/10 bg-white/[0.025] p-6 sm:flex-row sm:items-center">
@@ -168,7 +234,7 @@ export default async function LeadsPage() {
                   {/* TABLE HEADER */}
                   <thead>
                     <tr className="border-b border-white/10 bg-white/[0.025]">
-                      <th className="w-[36%] px-7 py-5 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+                      <th className="w-[32%] px-7 py-5 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
                         Lead
                       </th>
 
@@ -184,7 +250,7 @@ export default async function LeadsPage() {
                         Temperature
                       </th>
 
-                      <th className="w-[12%] px-7 py-5 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">
+                      <th className="w-[16%] px-7 py-5 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">
                         Action
                       </th>
                     </tr>
@@ -266,16 +332,23 @@ export default async function LeadsPage() {
                           </Link>
                         </td>
 
-                        {/* ================= ACTION ================= */}
-                        <td className="px-7 py-5 text-right">
-                          <Link
-                            href={`/leads/${lead.id}`}
-                            className="inline-flex items-center gap-2 whitespace-nowrap text-sm font-medium text-violet-400 transition-transform duration-200 hover:translate-x-1"
-                          >
-                            Open Lead
-                            <ArrowRight className="h-4 w-4" />
-                          </Link>
-                        </td>
+                       {/* ================= ACTION ================= */}
+<td className="px-7 py-5">
+  <div className="flex items-center justify-end gap-2">
+    <Link
+      href={`/leads/${lead.id}`}
+      className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-violet-400 transition-all duration-200 hover:bg-violet-500/10 hover:text-violet-300"
+    >
+      Open Lead
+      <ArrowRight className="h-4 w-4" />
+    </Link>
+
+    <DeleteLeadButton
+      leadId={lead.id}
+      leadName={lead.name || "this lead"}
+    />
+  </div>
+</td>
                       </tr>
                     ))}
                   </tbody>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 
 import type {
@@ -107,9 +108,10 @@ export default function UpdateLeadButton({
         Update Lead
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl">
+      {open &&
+  createPortal(
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/85 px-4 py-8 backdrop-blur-lg sm:py-10">
+      <div className="my-auto max-h-[calc(100vh-4rem)] w-full max-w-2xl overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl sm:max-h-[calc(100vh-5rem)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-white">
@@ -357,9 +359,10 @@ export default function UpdateLeadButton({
                   : "Save Changes"}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+               </div>
+    </div>,
+    document.body
+  )}
     </>
   );
 }

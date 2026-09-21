@@ -17,6 +17,11 @@ import StatsCards from "@/components/dashboard/StatsCards";
 import ReplyGenerator from "@/components/dashboard/ReplyGenerator";
 import ReplyGeneratorHeader from "@/components/dashboard/ReplyGeneratorHeader";
 import ReplyHistoryCard from "@/components/dashboard/ReplyHistoryCard";
+import LeadGenerator from "@/components/dashboard/LeadGenerator";
+import SalesRoleplayCard from "@/components/dashboard/SalesRoleplayCard";
+import SalesRoleplay from "@/components/dashboard/SalesRoleplay";
+import SalesRoleplayHeader from "@/components/dashboard/SalesRoleplayHeader";
+import AISalesLeadGeneratorHeader from "@/components/dashboard/AISalesLeadGeneratorHeader";
 
 type DashboardPageProps = {
   searchParams: Promise<{
@@ -76,7 +81,14 @@ export default async function DashboardPage({
     );
   }
 
-  const showGenerator = view === "generator";
+  const showReplyGenerator =
+    view === "generator";
+
+  const showLeadGenerator =
+    view === "lead-generator";
+
+  const showSalesRoleplay =
+    view === "sales-roleplay";
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -95,7 +107,7 @@ export default async function DashboardPage({
         {/* AI REPLY GENERATOR PAGE */}
         {/* ================================================== */}
 
-        {showGenerator ? (
+        {showReplyGenerator ? (
           <div className="space-y-8">
 
             {/* Welcome Back Header */}
@@ -117,6 +129,39 @@ export default async function DashboardPage({
             <ReplyHistoryCard />
 
           </div>
+
+        ) : showSalesRoleplay ? (
+
+          /* ================================================== */
+          /* AI SALES ROLEPLAY PAGE */
+          /* ================================================== */
+
+          <div className="space-y-8">
+
+  {/* AI Sales Roleplay Header */}
+  <SalesRoleplayHeader />
+
+  {/* AI Sales Roleplay */}
+  <SalesRoleplay />
+
+</div>
+
+        ) : showLeadGenerator ? (
+
+          /* ================================================== */
+          /* AI LEAD GENERATOR PAGE */
+          /* ================================================== */
+
+         <div className="space-y-8">
+
+  {/* AI Lead Generator Header */}
+  <AISalesLeadGeneratorHeader />
+
+  {/* AI Lead Generator */}
+  <LeadGenerator />
+
+</div>
+
         ) : (
 
           /* ================================================== */
@@ -188,7 +233,54 @@ export default async function DashboardPage({
               </Link>
 
               {/* ================================================== */}
-              {/* LEADS */}
+              {/* AI LEAD GENERATOR */}
+              {/* ================================================== */}
+
+              <Link
+                href="/dashboard?view=lead-generator"
+                className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-blue-400/25 hover:bg-white/[0.035] sm:p-7"
+              >
+                {/* Glow */}
+                <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/[0.07] blur-3xl transition group-hover:bg-blue-500/[0.13]" />
+
+                <div className="relative">
+
+                  {/* Icon + Arrow */}
+                  <div className="flex items-start justify-between gap-4">
+
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-400/10 text-blue-300">
+                      <Users className="h-5 w-5" />
+                    </div>
+
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-zinc-500 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.08] group-hover:text-blue-300">
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </div>
+
+                  </div>
+
+                  {/* Title */}
+                  <h2 className="mt-6 text-lg font-semibold tracking-tight text-white sm:text-xl">
+                    AI Lead Generator
+                  </h2>
+
+                  {/* Description */}
+                  <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">
+                    Discover potential client profiles
+                    that match your coaching niche.
+                  </p>
+
+                  {/* Button */}
+                  <div className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.06] group-hover:text-white">
+                    Open Lead Generator
+
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
+
+                </div>
+              </Link>
+
+              {/* ================================================== */}
+              {/* LEADS & FOLLOW-UPS */}
               {/* ================================================== */}
 
               <Link
@@ -234,7 +326,14 @@ export default async function DashboardPage({
                 </div>
               </Link>
 
+              {/* ================================================== */}
+              {/* AI SALES ROLEPLAY */}
+              {/* ================================================== */}
+
+              <SalesRoleplayCard />
+
             </div>
+
           </div>
         )}
 

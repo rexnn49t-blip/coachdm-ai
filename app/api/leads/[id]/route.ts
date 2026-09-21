@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 
 import {
   updateLead,
+  deleteLead,
   type LeadIntent,
   type LeadStage,
   type LeadTemperature,
@@ -78,6 +79,66 @@ export async function PATCH(
       {
         error:
           "Something went wrong while updating the lead.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+/**
+ * Delete a lead.
+ */
+export async function DELETE(
+  req: NextRequest,
+  context: RouteContext
+) {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json(
+        {
+          error: "Unauthorized.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const { id } = await context.params;
+
+    const deleted = await deleteLead(
+      userId,
+      id
+    );
+
+    if (!deleted) {
+      return NextResponse.json(
+        {
+          error: "Failed to delete lead.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error(
+      "Delete lead API error:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          "Something went wrong while deleting the lead.",
       },
       {
         status: 500,

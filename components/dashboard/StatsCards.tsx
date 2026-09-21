@@ -1,7 +1,7 @@
 import {
   Bot,
-  TrendingUp,
-  History,
+  Users,
+  Clock3,
   Crown,
 } from "lucide-react";
 
@@ -11,6 +11,10 @@ type StatsCardsProps = {
     repliesToday: number;
     repliesThisMonth: number;
     favoriteTone: string;
+
+    activeLeads: number;
+    followUpsDue: number;
+
     plan: "FREE" | "PRO";
     monthlyLimit: number | null;
   };
@@ -23,57 +27,74 @@ export default function StatsCards({
     stats.monthlyLimit === null
       ? 100
       : Math.min(
-          (stats.repliesThisMonth / stats.monthlyLimit) * 100,
+          (stats.repliesThisMonth /
+            stats.monthlyLimit) *
+            100,
           100
         );
 
   const cards = [
     {
-      title: "Replies Today",
-      value: stats.repliesToday,
-      icon: Bot,
-    },
-    {
-      title: "This Month",
-      value: stats.repliesThisMonth,
-      icon: TrendingUp,
-    },
-    {
-      title: "Total Replies",
+      title: "Replies Generated",
       value: stats.totalReplies,
-      icon: History,
+      icon: Bot,
+      type: "replies",
+    },
+    {
+      title: "Active Leads",
+      value: stats.activeLeads,
+      icon: Users,
+      type: "leads",
+    },
+    {
+      title: "Follow-Ups Due",
+      value: stats.followUpsDue,
+      icon: Clock3,
+      type: "followups",
     },
     {
       title: "Current Plan",
       value: stats.plan,
       icon: Crown,
+      type: "plan",
     },
   ];
 
   return (
     <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-      {cards.map((card, index) => {
+      {cards.map((card) => {
         const Icon = card.icon;
 
         return (
           <div
             key={card.title}
-            className="group rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-violet-500/40"
+            className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-violet-400/25 hover:bg-white/[0.04]"
           >
-            <div className="flex items-center justify-between">
+            {/* Subtle glow */}
+            <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-violet-500/[0.06] blur-2xl transition-all duration-300 group-hover:bg-violet-500/[0.10]" />
+
+            <div className="relative flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm text-zinc-400">
+                {/* Title */}
+                <p className="text-sm font-medium text-zinc-400">
                   {card.title}
                 </p>
 
-                <h2 className="mt-3 text-4xl font-bold text-white">
+                {/* Main Value */}
+                <h2
+                  className={`mt-3 font-bold tracking-tight text-white ${
+                    card.type === "plan"
+                      ? "text-3xl"
+                      : "text-4xl"
+                  }`}
+                >
                   {card.value}
                 </h2>
 
-                {/* Usage Progress */}
-                {index === 1 && (
+                {/* Replies Usage */}
+                {card.type === "replies" && (
                   <>
-                    <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/[0.06]">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-500"
                         style={{
@@ -90,14 +111,28 @@ export default function StatsCards({
                   </>
                 )}
 
+                {/* Active Leads */}
+                {card.type === "leads" && (
+                  <p className="mt-4 text-xs text-zinc-500">
+                    Currently in your pipeline
+                  </p>
+                )}
+
+                {/* Follow-Ups */}
+                {card.type === "followups" && (
+                  <p className="mt-4 text-xs text-zinc-500">
+                    Leads awaiting follow-up
+                  </p>
+                )}
+
                 {/* Plan Badge */}
-                {index === 3 && (
+                {card.type === "plan" && (
                   <div className="mt-5">
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
                         stats.plan === "PRO"
-                          ? "bg-emerald-500/20 text-emerald-400"
-                          : "bg-violet-500/20 text-violet-300"
+                          ? "bg-emerald-500/15 text-emerald-400"
+                          : "bg-violet-500/15 text-violet-300"
                       }`}
                     >
                       {stats.plan === "PRO"
@@ -108,7 +143,8 @@ export default function StatsCards({
                 )}
               </div>
 
-              <div className="rounded-2xl bg-violet-500/10 p-3">
+              {/* Icon */}
+              <div className="relative ml-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-violet-400/[0.08] bg-violet-500/[0.10]">
                 <Icon className="h-6 w-6 text-violet-400" />
               </div>
             </div>

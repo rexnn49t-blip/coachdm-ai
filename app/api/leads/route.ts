@@ -6,6 +6,8 @@ import {
   getLeads,
 } from "@/lib/leads";
 
+import { isPro } from "@/lib/subscription-db";
+
 export async function GET() {
   try {
     const { userId } = await auth();
@@ -77,6 +79,28 @@ export async function POST(
           status: 400,
         }
       );
+    }
+
+    // Free users can have only 1 lead.
+    // Pro users can create unlimited leads.
+    const pro = await isPro(userId);
+
+    if (!pro) {
+      const existingLeads =
+        await getLeads(userId);
+
+      if (existingLeads.length >= 1) {
+        return NextResponse.json(
+          {
+            error:
+              "Free plan allows 1 lead. Upgrade to Pro to add unlimited leads.",
+            code: "LEAD_LIMIT_REACHED",
+          },
+          {
+            status: 403,
+          }
+        );
+      }
     }
 
     const lead =

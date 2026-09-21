@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Crown, ArrowRight } from "lucide-react";
 
 export default function AddLeadForm() {
   const router = useRouter();
@@ -21,6 +22,9 @@ export default function AddLeadForm() {
   const [error, setError] =
     useState("");
 
+  const [limitReached, setLimitReached] =
+    useState(false);
+
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
   ) {
@@ -31,12 +35,15 @@ export default function AddLeadForm() {
         "Please enter the lead's name."
       );
 
+      setLimitReached(false);
+
       return;
     }
 
     try {
       setLoading(true);
       setError("");
+      setLimitReached(false);
 
       const response = await fetch(
         "/api/leads",
@@ -65,6 +72,15 @@ export default function AddLeadForm() {
         await response.json();
 
       if (!response.ok) {
+        if (
+          data.code ===
+          "LEAD_LIMIT_REACHED"
+        ) {
+          setLimitReached(true);
+
+          return;
+        }
+
         throw new Error(
           data.error ||
             "Failed to create lead."
@@ -87,6 +103,8 @@ export default function AddLeadForm() {
           ? error.message
           : "Something went wrong."
       );
+
+      setLimitReached(false);
     } finally {
       setLoading(false);
     }
@@ -267,7 +285,46 @@ export default function AddLeadForm() {
         />
       </div>
 
-      {/* Error */}
+      {/* Free Plan Limit */}
+
+      {limitReached ? (
+        <div className="rounded-2xl border border-violet-500/50 bg-gradient-to-r from-violet-500/[0.14] via-indigo-500/[0.08] to-transparent p-5 shadow-lg shadow-violet-950/20">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-600/20 text-violet-300">
+                <Crown className="h-5 w-5" />
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-white">
+                  Free plan limit reached
+                </h3>
+
+                <p className="mt-1 text-sm leading-6 text-zinc-400">
+                  Free accounts can manage 1 lead.
+                  <br />
+                  Upgrade to Pro to add unlimited
+                  leads.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                router.push("/pricing")
+              }
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 transition hover:bg-violet-500"
+            >
+              Upgrade to Pro
+
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {/* General Error */}
 
       {error ? (
         <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">

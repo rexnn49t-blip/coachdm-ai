@@ -7,6 +7,9 @@ export type DashboardStats = {
   repliesThisMonth: number;
   favoriteTone: string;
 
+  activeLeads: number;
+  followUpsDue: number;
+
   plan: "FREE" | "PRO";
   monthlyLimit: number | null;
 };
@@ -23,10 +26,6 @@ export async function getDashboardStats(
 
   /*
    * Get all AI generations.
-   *
-   * This is separate from the `replies` table,
-   * because generating a reply and saving a reply
-   * are two different actions.
    */
   const {
     data: generations,
@@ -67,14 +66,6 @@ export async function getDashboardStats(
 
   /*
    * Determine the current usage period.
-   *
-   * Free users:
-   * Use replies_reset_at so dashboard statistics
-   * match the same monthly period used by
-   * the subscription system.
-   *
-   * Pro users:
-   * Use the beginning of the current calendar month.
    */
   let monthlyStart: Date;
 
@@ -110,10 +101,6 @@ export async function getDashboardStats(
 
   /*
    * Favorite tone.
-   *
-   * Based on generated replies rather than
-   * saved replies so it represents actual
-   * AI usage.
    */
   const toneCount: Record<string, number> = {};
 
@@ -130,10 +117,61 @@ export async function getDashboardStats(
     )[0]?.[0] ?? "-";
 
   /*
-   * Determine current plan.
+   * =====================================================
+   * LEAD STATS
+   * =====================================================
    *
-   * Supabase stores plan values in lowercase:
-   * "free" / "pro"
+   * Reuse the existing `leads` table.
+   *
+   * Active leads:
+   * Everything currently in the pipeline except
+   * converted clients and lost leads.
+   *
+   * Follow-ups:
+   * Leads currently sitting in the `follow_up`
+   * stage of the Lead Journey.
+   */
+  const {
+    data: leads,
+    error: leadsError,
+  } = await supabaseAdmin
+    .from("leads")
+    .select("stage")
+    .eq("clerk_user_id", userId);
+
+  if (leadsError) {
+    console.error(
+      "Dashboard lead stats error:",
+      leadsError
+    );
+
+    throw leadsError;
+  }
+
+  const allLeads = leads ?? [];
+
+  /*
+   * Active leads are leads that have not yet been
+   * converted or marked as lost.
+   */
+  const activeLeads =
+    allLeads.filter(
+      (lead) =>
+        lead.stage !== "client" &&
+        lead.stage !== "lost"
+    ).length;
+
+  /*
+   * Follow-ups due are leads currently at the
+   * follow_up stage.
+   */
+  const followUpsDue =
+    allLeads.filter(
+      (lead) => lead.stage === "follow_up"
+    ).length;
+
+  /*
+   * Determine current plan.
    */
   const isPro =
     subscription?.plan?.toLowerCase() === "pro" &&
@@ -146,9 +184,7 @@ export async function getDashboardStats(
     : "FREE";
 
   /*
-   * Free users use their actual configured
-   * subscription limit.
-   *
+   * Free users use their configured limit.
    * Pro users are unlimited.
    */
   const monthlyLimit = isPro
@@ -174,6 +210,15 @@ export async function getDashboardStats(
 
     favoriteTone,
 
+    /*
+     * Lead pipeline statistics.
+     */
+    activeLeads,
+    followUpsDue,
+
+    /*
+     * Subscription statistics.
+     */
     plan,
     monthlyLimit,
   };

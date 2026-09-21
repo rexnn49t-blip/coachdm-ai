@@ -43,10 +43,10 @@ function LeadRow({
           {icon}
         </div>
 
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-black">
-            {lead.name}
-          </p>
+       <div className="min-w-0">
+  <p className="truncate text-sm font-semibold text-white">
+    {lead.name}
+  </p>
 
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
             <span className="capitalize">
