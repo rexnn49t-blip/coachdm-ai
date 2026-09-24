@@ -9,8 +9,6 @@ import {
   Loader2,
   Save,
   Check,
-  RefreshCw,
-  SlidersHorizontal,
 } from "lucide-react";
 
 type GeneratedLead = {
@@ -19,25 +17,22 @@ type GeneratedLead = {
   goal: string;
   whyFit: string;
   conversationAngle: string;
+  sourceUrl: string;
 };
-
-type Refinement = "specific" | "high_value" | "different_angle";
 
 export default function LeadGenerator() {
   const [niche, setNiche] = useState("");
   const [idealClient, setIdealClient] = useState("");
   const [goal, setGoal] = useState("");
   const [location, setLocation] = useState("");
-  const [count, setCount] = useState("5");
+  const [count, setCount] = useState("2");
 
   const [leads, setLeads] = useState<GeneratedLead[]>([]);
   const [loading, setLoading] = useState(false);
   const [savedLeads, setSavedLeads] = useState<string[]>([]);
   const [error, setError] = useState("");
 
-  async function generateLeads(
-    refinement?: Refinement
-  ) {
+  async function generateLeads() {
     setError("");
 
     if (!niche.trim() || !idealClient.trim()) {
@@ -50,32 +45,35 @@ export default function LeadGenerator() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/generate-leads", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          niche,
-          idealClient,
-          goal,
-          location,
-          count: Number(count),
-          refinement: refinement || "",
-        }),
-      });
+      const response = await fetch(
+        "/api/generate-leads",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            niche,
+            idealClient,
+            goal,
+            location,
+            count: Number(count),
+          }),
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(
-          data?.error || "Unable to generate lead ideas."
+          data?.error ||
+            "Unable to find potential clients."
         );
       }
 
       setLeads(data.leads || []);
 
-      // New results are a new set of ideas.
+      // New search = new set of prospects
       setSavedLeads([]);
     } catch (err) {
       setError(
@@ -93,33 +91,39 @@ export default function LeadGenerator() {
     await generateLeads();
   }
 
-  async function handleRegenerate() {
-    await generateLeads();
-  }
-
-  async function handleRefine(
-    refinement: Refinement
+  async function handleSaveLead(
+    lead: GeneratedLead
   ) {
-    await generateLeads(refinement);
-  }
-
-  async function handleSaveLead(lead: GeneratedLead) {
     try {
-      const response = await fetch("/api/leads", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: lead.name,
-          source: "AI Lead Generator",
-          goal: lead.goal,
-          notes: `${lead.profile}\n\nWhy they may be a fit:\n${lead.whyFit}\n\nSuggested conversation angle:\n${lead.conversationAngle}`,
-        }),
-      });
+      const response = await fetch(
+        "/api/leads",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: lead.name,
+            source: "AI Web Prospect Finder",
+            goal: lead.goal,
+            notes: `${lead.profile}
+
+Why they may be a fit:
+${lead.whyFit}
+
+Suggested conversation angle:
+${lead.conversationAngle}
+
+Public source:
+${lead.sourceUrl}`,
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error("Unable to save lead.");
+        throw new Error(
+          "Unable to save lead."
+        );
       }
 
       setSavedLeads((current) => [
@@ -127,7 +131,9 @@ export default function LeadGenerator() {
         lead.name,
       ]);
     } catch {
-      setError("Unable to save this lead.");
+      setError(
+        "Unable to save this lead."
+      );
     }
   }
 
@@ -150,8 +156,8 @@ export default function LeadGenerator() {
                 </h2>
 
                 <p className="mt-1 text-sm text-zinc-500">
-                  Discover potential client profiles that match your
-                  coaching niche.
+                  Find publicly discoverable prospects
+                  that match your coaching niche.
                 </p>
               </div>
             </div>
@@ -159,12 +165,13 @@ export default function LeadGenerator() {
 
           <div className="flex items-center gap-2 rounded-xl border border-blue-400/10 bg-blue-400/[0.05] px-3 py-2 text-xs font-medium text-blue-300">
             <Sparkles className="h-3.5 w-3.5" />
-            AI Assisted
+            Web Research + AI
           </div>
         </div>
 
         {/* Form */}
         <div className="mt-8 grid gap-5 lg:grid-cols-2">
+          {/* Coaching Niche */}
           <div>
             <label className="mb-2 block text-sm font-medium text-zinc-300">
               Coaching Niche
@@ -180,6 +187,7 @@ export default function LeadGenerator() {
             />
           </div>
 
+          {/* Ideal Client */}
           <div>
             <label className="mb-2 block text-sm font-medium text-zinc-300">
               Ideal Client
@@ -195,6 +203,7 @@ export default function LeadGenerator() {
             />
           </div>
 
+          {/* Goal */}
           <div>
             <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
               <Target className="h-4 w-4 text-blue-400" />
@@ -211,6 +220,7 @@ export default function LeadGenerator() {
             />
           </div>
 
+          {/* Location */}
           <div>
             <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
               <MapPin className="h-4 w-4 text-blue-400" />
@@ -225,17 +235,18 @@ export default function LeadGenerator() {
               onChange={(event) =>
                 setLocation(event.target.value)
               }
-              placeholder="e.g. USA"
+              placeholder="e.g. India"
               className="w-full rounded-xl border border-white/[0.08] bg-black/60 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-blue-400/40"
             />
           </div>
         </div>
 
-        {/* Bottom controls */}
+        {/* Bottom Controls */}
         <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end">
+          {/* Prospect Count */}
           <div className="sm:w-40">
             <label className="mb-2 block text-sm font-medium text-zinc-300">
-              Lead Ideas
+              Prospects
             </label>
 
             <select
@@ -243,14 +254,27 @@ export default function LeadGenerator() {
               onChange={(event) =>
                 setCount(event.target.value)
               }
-              className="w-full rounded-xl border border-white/[0.08] bg-black/60 px-4 py-3 text-sm text-white outline-none focus:border-blue-400/40"
+              className="w-full rounded-xl border border-white/[0.08] bg-black/60 px-4 py-3 text-sm text-white outline-none transition focus:border-blue-400/40"
             >
-              <option value="3">3 leads</option>
-              <option value="5">5 leads</option>
-              <option value="10">10 leads</option>
+              <option value="1">
+                1 prospect
+              </option>
+
+              <option value="2">
+                2 prospects
+              </option>
+
+              <option value="3">
+                3 prospects
+              </option>
+
+              <option value="4">
+                4 prospects
+              </option>
             </select>
           </div>
 
+          {/* Generate */}
           <button
             type="button"
             onClick={handleGenerate}
@@ -260,12 +284,12 @@ export default function LeadGenerator() {
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Finding Potential Clients...
+                Researching Potential Clients...
               </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4" />
-                Generate Lead Ideas
+                Find Potential Clients
               </>
             )}
           </button>
@@ -282,100 +306,34 @@ export default function LeadGenerator() {
         {leads.length > 0 && (
           <div className="mt-10 border-t border-white/[0.07] pt-8">
             {/* Results Header */}
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <h3 className="text-base font-semibold text-white">
-                  Potential Client Profiles
-                </h3>
+            <div>
+              <h3 className="text-base font-semibold text-white">
+                Potential Clients Found
+              </h3>
 
-                <p className="mt-1 text-sm text-zinc-500">
-                  Review these AI-generated profiles and save the ones
-                  that are relevant to your coaching business.
-                </p>
-              </div>
-
-              {/* Regenerate */}
-              <button
-                type="button"
-                onClick={handleRegenerate}
-                disabled={loading}
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:border-blue-400/20 hover:bg-blue-400/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-3.5 w-3.5" />
-                )}
-                Regenerate Ideas
-              </button>
-            </div>
-
-            {/* Refine Results */}
-            <div className="mt-6 rounded-2xl border border-white/[0.07] bg-white/[0.015] p-4">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="h-4 w-4 text-blue-400" />
-
-                  <div>
-                    <p className="text-sm font-medium text-white">
-                      Refine Results
-                    </p>
-
-                    <p className="mt-0.5 text-xs text-zinc-600">
-                      Generate a new set based on a different direction.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleRefine("specific")
-                    }
-                    disabled={loading}
-                    className="rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-xs font-medium text-zinc-400 transition hover:border-blue-400/20 hover:bg-blue-400/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    More Specific
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleRefine("high_value")
-                    }
-                    disabled={loading}
-                    className="rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-xs font-medium text-zinc-400 transition hover:border-blue-400/20 hover:bg-blue-400/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Higher-Value Clients
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleRefine("different_angle")
-                    }
-                    disabled={loading}
-                    className="rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-xs font-medium text-zinc-400 transition hover:border-blue-400/20 hover:bg-blue-400/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Different Angle
-                  </button>
-                </div>
-              </div>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-500">
+                Review publicly discoverable prospects,
+                verify the source, and decide who is worth
+                starting a conversation with.
+              </p>
             </div>
 
             {/* Lead Cards */}
             <div className="mt-6 grid gap-5 lg:grid-cols-2">
               {leads.map((lead) => {
-                const saved = savedLeads.includes(lead.name);
+                const saved =
+                  savedLeads.includes(
+                    lead.name
+                  );
 
                 return (
                   <div
                     key={`${lead.name}-${lead.goal}`}
                     className="rounded-2xl border border-white/[0.07] bg-black/50 p-5"
                   >
+                    {/* Lead Header */}
                     <div className="flex items-start justify-between gap-4">
-                      <div>
+                      <div className="min-w-0">
                         <h4 className="font-semibold text-white">
                           {lead.name}
                         </h4>
@@ -383,17 +341,35 @@ export default function LeadGenerator() {
                         <p className="mt-1 text-sm text-zinc-500">
                           {lead.profile}
                         </p>
+
+                        {lead.sourceUrl && (
+                          <a
+                            href={lead.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 inline-flex max-w-full truncate text-xs font-medium text-blue-400 transition hover:text-blue-300"
+                          >
+                            View public source
+                            <span
+                              className="ml-1.5"
+                              aria-hidden="true"
+                            >
+                              ↗
+                            </span>
+                          </a>
+                        )}
                       </div>
 
-                      <div className="rounded-lg bg-blue-400/10 px-2.5 py-1 text-xs text-blue-300">
-                        Potential Fit
+                      <div className="shrink-0 rounded-lg bg-blue-400/10 px-2.5 py-1 text-xs text-blue-300">
+                        Possible Match
                       </div>
                     </div>
 
+                    {/* Lead Details */}
                     <div className="mt-5 space-y-4 text-sm">
                       <div>
                         <p className="text-xs font-medium uppercase tracking-wide text-zinc-600">
-                          Likely Goal
+                          Relevant Goal / Situation
                         </p>
 
                         <p className="mt-1 leading-6 text-zinc-300">
@@ -422,9 +398,12 @@ export default function LeadGenerator() {
                       </div>
                     </div>
 
+                    {/* Save Lead */}
                     <button
                       type="button"
-                      onClick={() => handleSaveLead(lead)}
+                      onClick={() =>
+                        handleSaveLead(lead)
+                      }
                       disabled={saved}
                       className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:border-blue-400/20 hover:bg-blue-400/[0.06] hover:text-white disabled:cursor-default disabled:text-green-400"
                     >
