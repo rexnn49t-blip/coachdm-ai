@@ -12,40 +12,36 @@ const features = [
     pro: "Unlimited",
   },
   {
-    name: "AI Follow-up Messages",
+    name: "AI Follow-up Assistance",
     free: false,
     pro: true,
   },
   {
-    name: "Premium AI Models",
-    free: false,
+    name: "AI Sales Roleplay",
+    free: true,
     pro: true,
+  },
+  {
+    name: "AI Lead Generator",
+    free: "1 Per Month",
+    pro: "5 Per Month",
+  },
+  {
+    name: "Lead Management & Guidance",
+    free: "1",
+    pro: "Unlimited",
   },
   {
     name: "Reply History",
-    free: "30 Days",
-    pro: "Unlimited",
+    free: true,
+    pro: true,
   },
   {
     name: "Copy & Export",
     free: true,
     pro: true,
   },
-  {
-    name: "Priority AI Queue",
-    free: false,
-    pro: true,
-  },
-  {
-    name: "Priority Support",
-    free: false,
-    pro: true,
-  },
-  {
-    name: "Future Features",
-    free: false,
-    pro: true,
-  },
+  
 ];
 
 function Cell({
@@ -76,17 +72,12 @@ export default function FeatureComparison() {
         <div className="text-center">
 
           <h2 className="text-4xl font-bold">
-
             Compare Plans
-
           </h2>
 
           <p className="mt-4 text-zinc-400">
-
             Everything included in every plan.
-
             Upgrade whenever you're ready.
-
           </p>
 
         </div>
@@ -100,21 +91,15 @@ export default function FeatureComparison() {
               <tr>
 
                 <th className="px-8 py-6 text-left text-zinc-300">
-
                   Features
-
                 </th>
 
                 <th className="text-center">
-
                   Free
-
                 </th>
 
                 <th className="text-center text-violet-400">
-
                   Pro
-
                 </th>
 
               </tr>
@@ -131,21 +116,15 @@ export default function FeatureComparison() {
                 >
 
                   <td className="px-8 py-6 font-medium">
-
                     {feature.name}
-
                   </td>
 
                   <td className="text-center">
-
                     <Cell value={feature.free} />
-
                   </td>
 
                   <td className="text-center">
-
                     <Cell value={feature.pro} />
-
                   </td>
 
                 </tr>
@@ -159,7 +138,6 @@ export default function FeatureComparison() {
         </div>
 
       </div>
-
     </section>
   );
 }

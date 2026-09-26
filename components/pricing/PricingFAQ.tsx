@@ -8,32 +8,32 @@ const faqs = [
   {
     question: "Can I cancel my subscription anytime?",
     answer:
-      "Yes. You can cancel your subscription at any time from your account dashboard. You'll continue to have access until the end of your billing period.",
+      "Yes. You can cancel your subscription at any time through the applicable Paddle subscription management portal. Cancellation generally prevents the next renewal, while your access continues according to the applicable billing terms.",
   },
   {
     question: "Is there a free plan?",
     answer:
-      "Yes. Every account starts on the Free plan with limited AI replies. Upgrade whenever you're ready for unlimited usage.",
+      "Yes. Every account starts on the Free plan with 3 AI replies per month, along with core features such as lead management and reply history. Upgrade to Pro whenever you need additional AI-powered features and higher usage.",
   },
   {
-    question: "Which AI models do you use?",
+    question: "What AI features are included in Pro?",
     answer:
-      "CoachDM AI uses powerful large language models to generate natural, personalized replies that sound human and convert more leads.",
+      "Pro includes unlimited AI reply generation, AI follow-up assistance, AI sales roleplay, AI lead generation, objection handling, lead management, reply history, and Copy & Export.",
   },
   {
     question: "Can I upgrade later?",
     answer:
-      "Absolutely. You can upgrade from the Free plan to Pro at any time with just one click.",
+      "Absolutely. You can upgrade from the Free plan to Pro at any time through the CoachDM AI upgrade flow.",
   },
   {
     question: "Is my data secure?",
     answer:
-      "Yes. Your conversations and generated replies are securely stored. We never sell your data and use industry-standard security practices.",
+      "We take reasonable technical and organizational measures to protect your information. CoachDM AI does not sell your personal information. Please review our Privacy Policy for more information about how your data is collected, used, and protected.",
   },
   {
     question: "Do you offer refunds?",
     answer:
-      "If you experience an issue with your subscription, contact us and we'll work with you to find the best solution.",
+      "Refund requests are handled according to the applicable refund policy and consumer protection laws. Payments are processed through Paddle, which may handle certain payment and refund requests. Please review our Refund Policy for more information.",
   },
 ];
 

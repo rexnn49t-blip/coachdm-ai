@@ -80,7 +80,7 @@ export default function AboutPage() {
               </p>
 
               <p className="mt-3 text-sm text-gray-500">
-                Contact: notifications@coachdm.pro
+                Contact: coachdmsupport@gmail.com
               </p>
             </div>
           </div>

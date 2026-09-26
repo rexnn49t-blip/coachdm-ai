@@ -374,7 +374,7 @@ export default function TermsOfServicePage() {
                   <br />
                   CoachDM AI
                   <br />
-                  Email: notifications@coachdm.pro
+                  Email: coachdmsupport@gmail.com
                 </p>
               </div>
             </section>

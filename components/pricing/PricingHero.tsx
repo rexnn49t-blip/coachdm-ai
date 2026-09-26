@@ -19,14 +19,14 @@ export default function PricingHero() {
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: .6 }}
+          transition={{ duration: 0.6 }}
         >
 
           <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm text-violet-300">
 
             <Sparkles className="h-4 w-4" />
 
-            Trusted by coaches worldwide
+            Built for modern coaches
 
           </div>
 
@@ -38,7 +38,7 @@ export default function PricingHero() {
 
             <span className="bg-gradient-to-r from-white via-violet-300 to-violet-500 bg-clip-text text-transparent">
 
-              Unlimited growth.
+              Powerful AI tools.
 
             </span>
 
@@ -48,9 +48,9 @@ export default function PricingHero() {
 
             Start free.
 
-            Upgrade only when you're ready.
+            Upgrade when you need more AI-powered sales tools.
 
-            No contracts.
+            No long-term contracts.
 
             Cancel anytime.
 

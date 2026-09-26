@@ -15,17 +15,19 @@ import { toast } from "sonner";
 
 const freeFeatures = [
   "3 AI replies / month",
-  "Basic AI model",
+  "Basic reply generation",
   "Reply history",
+  "Lead management",
   "Email support",
 ];
 
 const proFeatures = [
   "Unlimited AI replies",
-  "Premium AI model",
-  "Unlimited history",
-  "Priority generation",
-  "Copy & Export",
+  "AI follow-up assistance",
+  "AI sales roleplay",
+  "AI lead generator",
+  "Unlimited Lead management",
+  "Objection handling",
   "Priority support",
 ];
 
@@ -48,10 +50,10 @@ export default function PricingCards() {
       );
     }
 
-    const instance = await initializePaddle({
-      environment: "sandbox",
-      token,
-    });
+   const instance = await initializePaddle({
+  environment: "production",
+  token,
+});
 
     if (!instance) {
       throw new Error(

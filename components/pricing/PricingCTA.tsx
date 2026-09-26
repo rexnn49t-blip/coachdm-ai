@@ -23,36 +23,26 @@ export default function PricingCTA() {
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: .6 }}
+          transition={{ duration: 0.6 }}
           className="overflow-hidden rounded-[40px] border border-white/10 bg-gradient-to-br from-white/5 to-violet-600/10 p-14 backdrop-blur-2xl"
         >
 
           <div className="mx-auto max-w-3xl text-center">
 
             <div className="inline-flex items-center rounded-full border border-violet-500/30 bg-violet-500/10 px-5 py-2 text-sm text-violet-300">
-
               Ready to grow?
-
             </div>
 
             <h2 className="mt-8 text-5xl font-bold leading-tight text-white md:text-6xl">
-
-              Start booking
-
+              Turn more conversations
               <br />
-
-              more coaching clients.
-
+              into coaching clients.
             </h2>
 
             <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-zinc-400">
-
-              Join coaches using AI to reply faster,
-
-              follow up consistently,
-
-              and convert more leads into paying clients.
-
+              Use AI to reply faster, follow up consistently,
+              handle objections, and manage your coaching leads
+              from one place.
             </p>
 
             <div className="mt-12">
@@ -61,11 +51,9 @@ export default function PricingCTA() {
                 href="/sign-up"
                 className="group inline-flex items-center rounded-xl bg-violet-600 px-10 py-5 text-lg font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-violet-500 hover:shadow-[0_0_70px_rgba(139,92,246,.45)]"
               >
-
-                Start Free Trial
+                Start for Free
 
                 <ArrowRight className="ml-3 h-5 w-5 transition group-hover:translate-x-1" />
-
               </Link>
 
             </div>
@@ -79,15 +67,11 @@ export default function PricingCTA() {
                 <ShieldCheck className="mx-auto h-7 w-7 text-green-400" />
 
                 <p className="mt-4 font-semibold text-white">
-
                   Secure Payments
-
                 </p>
 
                 <p className="mt-2 text-sm text-zinc-400">
-
                   Protected checkout powered by Paddle.
-
                 </p>
 
               </div>
@@ -97,15 +81,11 @@ export default function PricingCTA() {
                 <Clock3 className="mx-auto h-7 w-7 text-violet-400" />
 
                 <p className="mt-4 font-semibold text-white">
-
                   Cancel Anytime
-
                 </p>
 
                 <p className="mt-2 text-sm text-zinc-400">
-
-                  No contracts. Stay only if you love it.
-
+                  No long-term contracts or commitments.
                 </p>
 
               </div>
@@ -115,15 +95,11 @@ export default function PricingCTA() {
                 <CreditCard className="mx-auto h-7 w-7 text-sky-400" />
 
                 <p className="mt-4 font-semibold text-white">
-
                   Instant Upgrade
-
                 </p>
 
                 <p className="mt-2 text-sm text-zinc-400">
-
-                  Unlock every premium feature in seconds.
-
+                  Unlock Pro features as soon as you upgrade.
                 </p>
 
               </div>

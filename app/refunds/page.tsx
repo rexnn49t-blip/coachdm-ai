@@ -191,7 +191,7 @@ export default function RefundPolicyPage() {
                   <br />
                   CoachDM AI
                   <br />
-                  Email: notifications@coachdm.pro
+                  Email: coachdmsupport@gmail.com
                 </p>
               </div>
             </section>
