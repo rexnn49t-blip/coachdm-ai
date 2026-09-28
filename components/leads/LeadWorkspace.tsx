@@ -22,7 +22,6 @@ import GenerateReplyButton from "@/components/leads/GenerateReplyButton";
 import ConversationHistoryButton from "@/components/leads/ConversationHistoryButton";
 import SmartFollowUp from "@/components/leads/SmartFollowUp";
 
-
 type LeadWorkspaceProps = {
   lead: Lead;
   activities: Awaited<ReturnType<typeof getLeadActivities>>;
@@ -32,38 +31,100 @@ const stages = [
   {
     value: "new",
     label: "New Lead",
+    description:
+      "This is a newly added lead who hasn't started a meaningful conversation yet.",
+    moveWhen:
+      "The lead responds and a real conversation begins.",
+    nextStep:
+      "Start the conversation with a personalized message based on why they showed interest.",
   },
   {
     value: "initial_conversation",
     label: "Initial Conversation",
+    description:
+      "You're starting to understand who the lead is and why they're interested in coaching.",
+    moveWhen:
+      "The lead begins sharing their goals, challenges, or current situation.",
+    nextStep:
+      "Ask an open question about what they're trying to achieve and what's been holding them back.",
   },
   {
     value: "discovery",
     label: "Discovery",
+    description:
+      "You're learning about the lead's goals and challenges.",
+    moveWhen:
+      "You understand their main problem, desired outcome, and readiness to invest.",
+    nextStep:
+      "Ask about what they've tried so far and what's preventing them from reaching their goal.",
   },
   {
     value: "qualification",
     label: "Qualification",
+    description:
+      "You're determining whether your coaching is the right fit for this lead.",
+    moveWhen:
+      "The lead raises a concern about price, time, commitment, results, or another barrier.",
+    nextStep:
+      "Understand how serious the lead is about solving the problem and identify anything that could prevent them from moving forward.",
   },
   {
     value: "objection",
     label: "Objection",
+    description:
+      "The lead has a concern that needs to be addressed before they can confidently move forward.",
+    moveWhen:
+      "The main concern has been addressed and the lead is still interested in solving their problem.",
+    nextStep:
+      "Respond directly to the concern without pressure, then confirm whether they still want to explore coaching.",
   },
   {
     value: "offer",
     label: "Offer",
+    description:
+      "You've established enough context to present the coaching solution that fits the lead.",
+    moveWhen:
+      "The lead hasn't made a decision yet and needs time or additional information.",
+    nextStep:
+      "Clearly explain the relevant coaching option, what it includes, and the actual price or terms provided by the coach.",
   },
   {
     value: "follow_up",
     label: "Follow Up",
+    description:
+      "The lead hasn't converted yet, so your goal is to continue the conversation without becoming pushy.",
+    moveWhen:
+      "The lead agrees to take the next step toward joining or paying.",
+    nextStep:
+      "Follow up with something relevant to their previous conversation rather than sending a generic reminder.",
   },
   {
     value: "call_payment",
     label: "Call / Payment",
+    description:
+      "The lead is close to becoming a client and is taking a concrete step toward working with you.",
+    moveWhen:
+      "The lead completes the required enrollment or payment process.",
+    nextStep:
+      "Make the final step clear and easy, and answer any remaining practical questions.",
   },
   {
     value: "client",
     label: "Client",
+    description:
+      "This lead has successfully converted into a paying coaching client.",
+    moveWhen: "",
+    nextStep:
+      "Begin onboarding and deliver the coaching experience promised to the client.",
+  },
+  {
+    value: "lost",
+    label: "Lost",
+    description:
+      "This lead isn't moving forward right now.",
+    moveWhen: "",
+    nextStep:
+      "Record the reason if known. If appropriate, consider whether a future follow-up makes sense.",
   },
 ];
 
@@ -76,6 +137,10 @@ export default function LeadWorkspace({
   const currentIndex = stages.findIndex(
     (stage) => stage.value === lead.stage
   );
+
+  const currentStage =
+    stages.find((stage) => stage.value === lead.stage) ||
+    stages[0];
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -199,6 +264,7 @@ export default function LeadWorkspace({
               currentTemperature={lead.temperature}
               currentStage={lead.stage}
             />
+
             <SmartFollowUp leadId={lead.id} />
 
             {/* Conversation */}
@@ -318,6 +384,7 @@ export default function LeadWorkspace({
 
               </div>
 
+              {/* Stage progression */}
               <div className="mt-6 space-y-1">
 
                 {stages.map((stage, index) => {
@@ -391,6 +458,56 @@ export default function LeadWorkspace({
 
               </div>
 
+              {/* ================================================= */}
+              {/* CURRENT STAGE GUIDANCE */}
+              {/* ================================================= */}
+
+              <div className="mt-6 border-t border-white/[0.06] pt-6">
+
+                <div className="rounded-2xl border border-violet-500/20 bg-violet-500/[0.06] p-4">
+
+                  <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-violet-400">
+                    Current Stage
+                  </p>
+
+                  <h3 className="mt-2 text-base font-semibold text-white">
+                    {currentStage.label}
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-zinc-400">
+                    {currentStage.description}
+                  </p>
+
+                </div>
+
+                {currentStage.moveWhen && (
+                  <div className="mt-4">
+
+                    <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                      Move to the next stage when
+                    </p>
+
+                    <p className="mt-2 text-sm leading-6 text-zinc-400">
+                      {currentStage.moveWhen}
+                    </p>
+
+                  </div>
+                )}
+
+                <div className="mt-4">
+
+                  <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                    Next step
+                  </p>
+
+                  <p className="mt-2 text-sm leading-6 text-zinc-400">
+                    {currentStage.nextStep}
+                  </p>
+
+                </div>
+
+              </div>
+
               {lead.stage === "lost" && (
                 <div className="mt-5 rounded-2xl border border-red-500/20 bg-red-500/5 p-4">
 
@@ -450,48 +567,42 @@ export default function LeadWorkspace({
 
             </section>
 
-           
-   {/* Quick Actions */}
+            {/* Quick Actions */}
+            <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 backdrop-blur-xl">
 
-<section className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 backdrop-blur-xl">
+              <h2 className="text-lg font-semibold">
+                Quick Actions
+              </h2>
 
-  <h2 className="text-lg font-semibold">
-    Quick Actions
-  </h2>
+              <div className="mt-5 space-y-3">
 
-  <div className="mt-5 space-y-3">
+                {/* Generate Reply */}
+                <GenerateReplyButton
+                  leadId={lead.id}
+                />
 
-    {/* Generate Reply */}
+                {/* Conversation History */}
+                <ConversationHistoryButton
+                  leadId={lead.id}
+                  activities={activities}
+                />
 
-    <GenerateReplyButton
-      leadId={lead.id}
-    />
+                {/* Convert to Client */}
+                {lead.stage === "call_payment" && (
+                  <ConvertToClientButton
+                    leadId={lead.id}
+                    leadName={lead.name}
+                  />
+                )}
 
-    {/* Conversation History */}
+                {/* Add Note */}
+                <AddNoteModal
+                  leadId={lead.id}
+                />
 
-    <ConversationHistoryButton
-      leadId={lead.id}
-      activities={activities}
-    />
+              </div>
 
-    {/* Convert to Client */}
-
-    {lead.stage === "call_payment" && (
-      <ConvertToClientButton
-        leadId={lead.id}
-        leadName={lead.name}
-      />
-    )}
-
-    {/* Add Note */}
-
-    <AddNoteModal
-      leadId={lead.id}
-    />
-
-  </div>
-
-</section>
+            </section>
 
           </aside>
 
