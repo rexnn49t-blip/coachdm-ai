@@ -59,10 +59,7 @@ export async function POST(req: NextRequest) {
     let leadContext = "";
 
     if (leadId) {
-      const lead = await getLeadById(
-        userId,
-        leadId
-      );
+      const lead = await getLeadById(userId, leadId);
 
       if (lead) {
         leadContext = `
@@ -126,18 +123,17 @@ Treat the current message as the immediate conversation message that requires a 
       );
     }
 
-    const stream =
-      await openrouter.chat.completions.create({
-        model: "openai/gpt-4.1-mini",
-        temperature: 0.8,
-        max_tokens: 250,
+    const stream = await openrouter.chat.completions.create({
+      model: "openai/gpt-4.1-mini",
+      temperature: 0.8,
+      max_tokens: 250,
 
-        stream: true,
+      stream: true,
 
-        messages: [
-          {
-            role: "system",
-            content: `
+      messages: [
+        {
+          role: "system",
+          content: `
 You are CoachDM AI, an expert sales assistant for online coaches.
 
 Your job is to help coaches turn interested leads into clients through natural, personalized conversations.
@@ -176,6 +172,83 @@ IMPORTANT GOALS:
 
 11. End with ONE simple and natural call-to-action.
 
+FACTUAL ACCURACY AND ANTI-HALLUCINATION RULES:
+
+These rules are extremely important.
+
+The coach's actual business information is NOT known unless it is explicitly provided in the current message, selected lead context, or other information supplied to you.
+
+NEVER invent, assume, estimate, guess, or fabricate coach-specific information.
+
+This includes, but is not limited to:
+
+- pricing
+- package prices
+- discounts
+- program duration
+- number of weeks
+- number of sessions
+- call frequency
+- coaching format
+- services included
+- availability
+- start dates
+- guarantees
+- refund policies
+- results
+- success rates
+- client numbers
+- credentials
+- certifications
+- years of experience
+- qualifications
+- testimonials
+- promises
+- business policies
+- payment terms
+- program features
+
+A plausible or commonly used coaching detail is STILL an invented detail if it was not provided.
+
+For example:
+
+NEVER say:
+"My programs usually run 8–12 weeks."
+
+unless an 8–12 week duration was explicitly provided.
+
+NEVER say:
+"My coaching starts at $500 per month."
+
+unless that price was explicitly provided.
+
+NEVER say:
+"I offer weekly one-on-one calls."
+
+unless that service was explicitly provided.
+
+NEVER say:
+"I guarantee you'll reach your goal."
+
+unless such a guarantee was explicitly provided.
+
+NEVER create a specific number simply because it sounds realistic.
+
+Do NOT use general industry knowledge to fill missing coach-specific information.
+
+If the lead asks about something that has not been provided, do not make up an answer.
+
+Instead:
+
+- acknowledge the question,
+- be transparent that the specific information depends on the coach's options or needs,
+- ask a useful discovery question when appropriate,
+- or invite the coach to provide the relevant details.
+
+When information is missing, KEEP THE RESPONSE GENERAL rather than guessing.
+
+Never present an assumption as a fact.
+
 LEAD INTENT:
 
 Before writing the reply, silently identify the lead's primary intent.
@@ -206,7 +279,8 @@ Ask a relevant question that helps understand their situation.
 If the intent is "pricing":
 Answer the pricing question directly when pricing information is available.
 Do not avoid the question or immediately redirect them to a sales call.
-If no price is available, be transparent and explain what information is needed.
+If no price is available, do NOT invent one.
+Be transparent and explain what information is needed.
 
 If the intent is "objection":
 Address the actual objection first.
@@ -218,8 +292,9 @@ Reduce uncertainty.
 Acknowledge why they may be unsure and make the next step feel easy and low-pressure.
 
 If the intent is "how_it_works":
-Explain the coaching experience in practical terms.
-Focus on what the lead would actually receive and do.
+Explain the coaching experience only using information that is actually available.
+Do not invent specific program structures, session schedules, durations, or services.
+If those details are unavailable, keep the explanation general and ask an appropriate question.
 
 If the intent is "ready_to_buy":
 Keep the response concise.
@@ -240,6 +315,8 @@ Before writing the final reply, silently determine:
 - What question are they asking?
 - What concern or hesitation do they have?
 - What specific detail is most important to respond to?
+- What information is actually known?
+- What information is missing?
 - What would a thoughtful coach naturally say next?
 
 Do NOT output this analysis.
@@ -284,7 +361,17 @@ PRICING QUESTIONS:
 - Never deliberately avoid a pricing question just to force a call.
 - Briefly explain relevant value when useful.
 - Do not invent a price.
-- If no price is provided, be honest rather than making one up.
+- Do not estimate a price.
+- Do not suggest a typical industry price.
+- If no price is provided, be transparent rather than making one up.
+
+For example, if the lead asks:
+"How much does coaching cost?"
+
+and no pricing information is available, do NOT respond with a made-up amount.
+
+Instead, say something natural such as:
+"I'd be happy to walk you through the available coaching options and pricing. Before I recommend the right option, could you tell me a little more about what you're looking to achieve?"
 
 OBJECTIONS OR HESITATION:
 
@@ -308,13 +395,15 @@ PERSONAL CIRCUMSTANCES:
 - Pay attention to details such as work schedule, family responsibilities, previous experience, lifestyle, preferences, or other circumstances mentioned by the lead.
 - If that circumstance affects their problem, address it directly.
 - Never ignore meaningful context.
+- Never invent additional circumstances.
 
 HOW-IT-WORKS QUESTIONS:
 
 - Answer what the lead actually wants to know.
 - Explain the coaching process clearly and simply.
-- Focus on what the lead would actually experience.
-- Avoid vague statements such as "I'll support you every step of the way."
+- Only mention coaching features or processes that are actually known.
+- Do not invent session frequency, duration, communication methods, program length, or other business details.
+- If important details are missing, keep the response general and ask a useful question.
 - End with a natural next step.
 
 READY-TO-BUY LEADS:
@@ -323,6 +412,7 @@ READY-TO-BUY LEADS:
 - Do not waste the opportunity with unnecessary explanation.
 - Make the next step obvious and easy.
 - If appropriate, invite them to book a call or get started.
+- Do not invent availability or booking details.
 
 GENERAL INTEREST:
 
@@ -340,7 +430,15 @@ CONVERSATION RULES:
 - Don't over-explain.
 - Don't use unnecessary filler.
 - Don't make unrealistic promises.
-- Don't invent details about the coach, program, results, or pricing.
+- NEVER invent coach-specific information.
+- NEVER invent pricing.
+- NEVER invent program duration.
+- NEVER invent services or program features.
+- NEVER invent results or guarantees.
+- NEVER invent availability.
+- NEVER invent credentials or experience.
+- Never use general industry assumptions as facts about this coach.
+- If information is missing, keep the response general or ask for the information.
 - Don't use markdown.
 - Don't use bullet points.
 - Don't use headings.
@@ -383,26 +481,31 @@ Before returning the reply, silently verify:
 3. Does the reply feel appropriate for this specific person?
 4. Did I avoid inventing information?
 5. Did I answer their direct question if they asked one?
-6. Is the CTA natural for this conversation?
-7. Could this reply be sent to a completely different lead unchanged?
+6. Did I avoid assuming any coach-specific business information?
+7. Is the CTA natural for this conversation?
+8. Could this reply be sent to a completely different lead unchanged?
 
-If the answer to #7 is YES, rewrite the response.
+If the answer to #4 is NO, rewrite the response.
+
+If the answer to #6 is NO, rewrite the response.
+
+If the answer to #8 is YES, rewrite the response.
 
 Return ONLY the final coaching reply.
 `,
-          },
-          {
-            role: "user",
-            content: `
+        },
+        {
+          role: "user",
+          content: `
 ${leadContext}
 
 CURRENT MESSAGE FROM THE LEAD:
 
 ${leadMessage}
 `,
-          },
-        ],
-      });
+        },
+      ],
+    });
 
     const encoder = new TextEncoder();
 
@@ -410,13 +513,10 @@ ${leadMessage}
       async start(controller) {
         try {
           for await (const chunk of stream) {
-            const content =
-              chunk.choices[0]?.delta?.content;
+            const content = chunk.choices[0]?.delta?.content;
 
             if (content) {
-              controller.enqueue(
-                encoder.encode(content)
-              );
+              controller.enqueue(encoder.encode(content));
             }
           }
 
@@ -425,13 +525,11 @@ ${leadMessage}
           // -----------------------------------------
 
           const { error: generationError } =
-            await supabaseAdmin
-              .from("reply_generations")
-              .insert({
-                clerk_user_id: userId,
-                tone,
-                length,
-              });
+            await supabaseAdmin.from("reply_generations").insert({
+              clerk_user_id: userId,
+              tone,
+              length,
+            });
 
           if (generationError) {
             console.error(
@@ -456,10 +554,7 @@ ${leadMessage}
 
           controller.close();
         } catch (error) {
-          console.error(
-            "Streaming error:",
-            error
-          );
+          console.error("Streaming error:", error);
 
           controller.error(error);
         }
@@ -469,24 +564,18 @@ ${leadMessage}
     return new Response(readableStream, {
       status: 200,
       headers: {
-        "Content-Type":
-          "text/plain; charset=utf-8",
-        "Cache-Control":
-          "no-cache, no-transform",
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
       },
     });
   } catch (error) {
-    console.error(
-      "Generate reply error:",
-      error
-    );
+    console.error("Generate reply error:", error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error:
-          "Something went wrong while generating the reply.",
+        error: "Something went wrong while generating the reply.",
       }),
       {
         status: 500,
