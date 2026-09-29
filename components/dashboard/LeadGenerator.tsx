@@ -264,13 +264,6 @@ ${lead.sourceUrl}`,
                 2 prospects
               </option>
 
-              <option value="3">
-                3 prospects
-              </option>
-
-              <option value="4">
-                4 prospects
-              </option>
             </select>
           </div>
 

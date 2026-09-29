@@ -335,6 +335,30 @@ If evidence is limited, use cautious language such as:
 "this may be relevant because..."
 
 =====================================================
+CURRENTNESS / RECENCY REQUIREMENT
+=====================================================
+
+Prefer recent public evidence that the person's relevant
+goal, challenge, or situation is current.
+
+Prioritize evidence from the last 12 months when available.
+
+Do NOT treat an old completed goal, past challenge,
+historical transformation, or outdated circumstance as
+evidence that the person currently needs the same thing.
+
+If the only evidence is substantially outdated or describes
+a problem that appears to have already been resolved,
+reject the prospect.
+
+A person may still qualify when older evidence is highly
+relevant, but only when there is additional public evidence
+suggesting the situation remains relevant.
+
+Quality and current relevance are more important than
+filling the requested number.
+
+=====================================================
 QUALITY SCREENING
 =====================================================
 
