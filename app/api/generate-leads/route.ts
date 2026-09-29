@@ -341,7 +341,13 @@ CURRENTNESS / RECENCY REQUIREMENT
 Prefer recent public evidence that the person's relevant
 goal, challenge, or situation is current.
 
-Prioritize evidence from the last 12 months when available.
+For a prospect to qualify, there should preferably be public evidence
+from the last 12 months showing that the relevant goal, challenge,
+or situation is still current.
+
+If the only relevant evidence is older than 12 months, reject the
+prospect unless there is newer public evidence confirming that the
+same situation remains relevant.
 
 Do NOT treat an old completed goal, past challenge,
 historical transformation, or outdated circumstance as
