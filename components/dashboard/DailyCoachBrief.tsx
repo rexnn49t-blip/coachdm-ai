@@ -15,6 +15,8 @@ import {
   type DailyBriefLead,
 } from "@/lib/daily-brief";
 
+import DynamicGreeting from "./DynamicGreeting";
+
 type DailyCoachBriefProps = {
   clerkUserId: string;
 };
@@ -103,18 +105,6 @@ export default async function DailyCoachBrief({
     user?.fullName ||
     user?.username ||
     "Coach";
-
-  /*
-   * Dynamic greeting based on the current hour.
-   */
-  const currentHour = new Date().getHours();
-
-  const greeting =
-    currentHour < 12
-      ? "Good morning"
-      : currentHour < 17
-        ? "Good afternoon"
-        : "Good evening";
 
   /*
    * Build one unified priority list.
@@ -214,9 +204,7 @@ export default async function DailyCoachBrief({
               Daily Coach Brief
             </div>
 
-            <h2 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">
-              {greeting}, {coachName} 👋
-            </h2>
+           <DynamicGreeting coachName={coachName} />
 
             <p className="mt-1.5 max-w-xl text-sm leading-6 text-zinc-500">
               Here&apos;s what needs your attention today.
