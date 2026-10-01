@@ -91,22 +91,22 @@ export default function LeadGenerator() {
     await generateLeads();
   }
 
-  async function handleSaveLead(
-    lead: GeneratedLead
-  ) {
-    try {
-      const response = await fetch(
-        "/api/leads",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: lead.name,
-            source: "AI Web Prospect Finder",
-            goal: lead.goal,
-            notes: `${lead.profile}
+async function handleSaveLead(
+  lead: GeneratedLead
+) {
+  try {
+    const response = await fetch(
+      "/api/leads",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: lead.name,
+          source: "AI Web Prospect Finder",
+          goal: lead.goal,
+          notes: `${lead.profile}
 
 Why they may be a fit:
 ${lead.whyFit}
@@ -116,26 +116,40 @@ ${lead.conversationAngle}
 
 Public source:
 ${lead.sourceUrl}`,
-          }),
-        }
-      );
+        }),
+      }
+    );
 
-      if (!response.ok) {
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      if (
+        response.status === 403 &&
+        data?.code === "LEAD_LIMIT_REACHED"
+      ) {
         throw new Error(
-          "Unable to save lead."
+          "You've reached your lead limit. Upgrade to Pro for unlimited leads."
         );
       }
 
-      setSavedLeads((current) => [
-        ...current,
-        lead.name,
-      ]);
-    } catch {
-      setError(
-        "Unable to save this lead."
+      throw new Error(
+        data?.error ||
+          "Unable to save lead."
       );
     }
+
+    setSavedLeads((current) => [
+      ...current,
+      lead.name,
+    ]);
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Unable to save this lead."
+    );
   }
+}
 
   return (
     <section className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.025] to-transparent p-6 sm:p-8">
