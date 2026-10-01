@@ -54,6 +54,14 @@ type ReplyGeneratorProps = {
   selectedLead: Lead | null;
 };
 
+type ReplyGeneratorStats = {
+  repliesUsed: number;
+  repliesLimit: number;
+  repliesRemaining: number;
+  plan: "free" | "pro";
+  savedReplies: number;
+};
+
 export default function ReplyGenerator({
   initialReply,
   selectedLead,
@@ -83,6 +91,9 @@ const [length, setLength] = useState(
 
   const [showUpgradeModal, setShowUpgradeModal] =
   useState(false);
+
+  const [stats, setStats] =
+  useState<ReplyGeneratorStats | null>(null);
 
 useEffect(() => {
   if (!initialReply) return;
@@ -231,6 +242,34 @@ useEffect(() => {
   loading,
   reply,
 ]);
+
+async function loadStats() {
+  try {
+    const response = await fetch(
+      "/api/generate-reply/stats",
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    setStats(data);
+  } catch (error) {
+    console.error(
+      "Failed to load Reply Generator stats:",
+      error
+    );
+  }
+}
+
+useEffect(() => {
+  loadStats();
+}, []);
+
 async function generateReply() {
   if (!leadMessage.trim()) return;
 
@@ -327,6 +366,8 @@ async function generateReply() {
 
       return;
     }
+
+    await loadStats();
 
     // Auto-save AFTER the complete reply has streamed
    if (autoSave) {
@@ -473,6 +514,81 @@ async function saveReply() {
 
   return (
    <section className="space-y-8">
+
+    {/* Reply Generator Stats */}
+{stats && (
+  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+    {/* AI Replies */}
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+      <p className="text-xs font-medium text-zinc-500">
+        AI Replies
+      </p>
+
+      <p className="mt-2 text-2xl font-bold text-white">
+        {stats.plan === "pro"
+          ? "Unlimited"
+          : `${stats.repliesUsed}/${stats.repliesLimit}`}
+      </p>
+
+      <p className="mt-1 text-xs text-zinc-500">
+        {stats.plan === "pro"
+          ? "No monthly limit"
+          : "Used this month"}
+      </p>
+    </div>
+
+    {/* Current Plan */}
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+      <p className="text-xs font-medium text-zinc-500">
+        Current Plan
+      </p>
+
+      <p className="mt-2 text-2xl font-bold capitalize text-white">
+        {stats.plan}
+      </p>
+
+      <p className="mt-1 text-xs text-zinc-500">
+        Your current CoachDM plan
+      </p>
+    </div>
+
+    {/* Replies Saved */}
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+      <p className="text-xs font-medium text-zinc-500">
+        Replies Saved
+      </p>
+
+      <p className="mt-2 text-2xl font-bold text-white">
+        {stats.savedReplies}
+      </p>
+
+      <p className="mt-1 text-xs text-zinc-500">
+        Total saved replies
+      </p>
+    </div>
+
+    {/* Replies Remaining */}
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+      <p className="text-xs font-medium text-zinc-500">
+        Replies Remaining
+      </p>
+
+      <p className="mt-2 text-2xl font-bold text-white">
+        {stats.plan === "pro"
+          ? "Unlimited"
+          : stats.repliesRemaining}
+      </p>
+
+      <p className="mt-1 text-xs text-zinc-500">
+        {stats.plan === "pro"
+          ? "Available on Pro"
+          : "Remaining this month"}
+      </p>
+    </div>
+
+  </div>
+)}
 
       {/* LEFT */}
 

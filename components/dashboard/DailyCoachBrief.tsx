@@ -43,10 +43,10 @@ function LeadRow({
           {icon}
         </div>
 
-       <div className="min-w-0">
-  <p className="truncate text-sm font-semibold text-white">
-    {lead.name}
-  </p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-white">
+            {lead.name}
+          </p>
 
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
             <span className="capitalize">
@@ -103,6 +103,18 @@ export default async function DailyCoachBrief({
     user?.fullName ||
     user?.username ||
     "Coach";
+
+  /*
+   * Dynamic greeting based on the current hour.
+   */
+  const currentHour = new Date().getHours();
+
+  const greeting =
+    currentHour < 12
+      ? "Good morning"
+      : currentHour < 17
+        ? "Good afternoon"
+        : "Good evening";
 
   /*
    * Build one unified priority list.
@@ -203,7 +215,7 @@ export default async function DailyCoachBrief({
             </div>
 
             <h2 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">
-              Good morning, {coachName} 👋
+              {greeting}, {coachName} 👋
             </h2>
 
             <p className="mt-1.5 max-w-xl text-sm leading-6 text-zinc-500">
@@ -406,7 +418,7 @@ export default async function DailyCoachBrief({
 
                 <Link
                   href={`/leads/${brief.bestOpportunity.id}`}
-                 className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-violet-400/20 bg-violet-500/10 px-5 py-3 text-sm font-medium text-violet-300 transition-all duration-200 hover:border-violet-400/40 hover:bg-violet-500/20 hover:text-white"
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-violet-400/20 bg-violet-500/10 px-5 py-3 text-sm font-medium text-violet-300 transition-all duration-200 hover:border-violet-400/40 hover:bg-violet-500/20 hover:text-white"
                 >
                   Open Lead
                   <ArrowRight className="h-3.5 w-3.5" />

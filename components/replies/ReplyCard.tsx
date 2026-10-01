@@ -130,44 +130,46 @@ export default function ReplyCard({
       role="button"
       tabIndex={0}
       onClick={() =>
-        router.push(`/dashboard?reply=${reply.id}`)
+        router.push(
+          `/dashboard?view=generator&reply=${reply.id}`
+        )
       }
       className="cursor-pointer rounded-2xl border border-white/10 bg-black/30 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(139,92,246,.15)] hover:border-violet-500/40 hover:bg-white/5"
     >
       {/* Lead */}
       <div>
-  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-violet-400">
-    Lead Message
-  </p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-violet-400">
+          Lead Message
+        </p>
 
-  <p className="line-clamp-3 rounded-xl bg-white/5 p-4 text-sm leading-6 text-zinc-300">
-    {reply.lead_message}
-  </p>
-</div>
+        <p className="line-clamp-3 rounded-xl bg-white/5 p-4 text-sm leading-6 text-zinc-300">
+          {reply.lead_message}
+        </p>
+      </div>
 
       {/* Reply */}
-     <div className="mt-5">
-  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-violet-400">
-    AI Reply
-  </p>
+      <div className="mt-5">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-violet-400">
+          AI Reply
+        </p>
 
-  <p className="line-clamp-6 rounded-xl border border-white/10 bg-black/30 p-4 leading-7 text-zinc-200">
-    {reply.ai_reply}
-  </p>
-</div>
+        <p className="line-clamp-6 rounded-xl border border-white/10 bg-black/30 p-4 leading-7 text-zinc-200">
+          {reply.ai_reply}
+        </p>
+      </div>
 
       {/* Footer */}
       <div className="mt-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-         <div className="flex items-center gap-2">
-  <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-300">
-    {reply.tone}
-  </span>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-300">
+              {reply.tone}
+            </span>
 
-  <span className="rounded-full bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300">
-    {reply.length}
-  </span>
-</div>
+            <span className="rounded-full bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300">
+              {reply.length}
+            </span>
+          </div>
 
           <div className="flex items-center gap-1 text-xs text-zinc-500">
             <Clock3 className="h-3.5 w-3.5" />

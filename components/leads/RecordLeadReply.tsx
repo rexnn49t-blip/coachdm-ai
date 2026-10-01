@@ -336,7 +336,7 @@ export default function RecordLeadReply({
             {/* CONTENT */}
             {/* ================================================= */}
 
-            <div className="overflow-y-auto p-6 sm:p-7">
+           <div className="min-h-0 flex-1 overflow-y-auto p-6 sm:p-7">
               {!analysis ? (
                 <>
                   {/* Reply label */}
