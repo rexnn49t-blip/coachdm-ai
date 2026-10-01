@@ -22,6 +22,9 @@ export type Subscription = {
   replies_limit: number;
   replies_reset_at: string;
 
+  lead_searches_used: number;
+ lead_searches_reset_at: string;
+
   created_at: string;
   updated_at: string;
 };
@@ -69,6 +72,10 @@ const { data, error } = await supabaseAdmin
     replies_used: 0,
     replies_limit: 3,
     replies_reset_at: new Date().toISOString(),
+
+    lead_searches_used: 0,
+lead_searches_reset_at: new Date().toISOString(),
+
   })
   .select()
   .single();
@@ -345,6 +352,187 @@ export async function updateSubscription(
   if (error) {
     console.error(
       "Update subscription error:",
+      error
+    );
+
+    return null;
+  }
+
+  return data as Subscription;
+}
+
+/**
+ * Reset monthly AI Lead Generator usage
+ * when a new calendar month begins.
+ */
+export async function ensureMonthlyLeadSearchReset(
+  clerkUserId: string
+): Promise<Subscription | null> {
+  const subscription =
+    await getSubscription(clerkUserId);
+
+  if (!subscription) {
+    return null;
+  }
+
+  // Pro users are unlimited.
+  if (subscription.plan === "pro") {
+    return subscription;
+  }
+
+  const resetDate = new Date(
+    subscription.lead_searches_reset_at
+  );
+
+  const now = new Date();
+
+  const sameMonth =
+    resetDate.getUTCFullYear() ===
+      now.getUTCFullYear() &&
+    resetDate.getUTCMonth() ===
+      now.getUTCMonth();
+
+  if (sameMonth) {
+    return subscription;
+  }
+
+  const { data, error } =
+    await supabaseAdmin
+      .from("subscriptions")
+      .update({
+        lead_searches_used: 0,
+        lead_searches_reset_at:
+          now.toISOString(),
+        updated_at: now.toISOString(),
+      })
+      .eq("clerk_user_id", clerkUserId)
+      .select()
+      .single();
+
+  if (error) {
+    console.error(
+      "Monthly lead search reset error:",
+      error
+    );
+
+    return subscription;
+  }
+
+  return data as Subscription;
+}
+
+/**
+ * Get AI Lead Generator usage.
+ *
+ * Free users: 3 searches/month.
+ * Pro users: unlimited.
+ */
+export async function getLeadSearchUsage(
+  clerkUserId: string
+): Promise<{
+  used: number;
+  limit: number;
+  remaining: number;
+  plan: Plan;
+} | null> {
+  const subscription =
+    await ensureMonthlyLeadSearchReset(
+      clerkUserId
+    );
+
+  if (!subscription) {
+    return null;
+  }
+
+  const pro =
+    subscription.plan === "pro" &&
+    ["active", "trialing"].includes(
+      subscription.status.toLowerCase()
+    );
+
+  if (pro) {
+    return {
+      used: subscription.lead_searches_used,
+      limit: -1,
+      remaining: -1,
+      plan: "pro",
+    };
+  }
+
+  const limit = 3;
+  const used =
+    subscription.lead_searches_used;
+
+  return {
+    used,
+    limit,
+    remaining: Math.max(
+      0,
+      limit - used
+    ),
+    plan: "free",
+  };
+}
+
+/**
+ * Check whether the user can run
+ * another AI Lead Generator search.
+ */
+export async function canGenerateLeadSearch(
+  clerkUserId: string
+): Promise<boolean> {
+  const usage =
+    await getLeadSearchUsage(
+      clerkUserId
+    );
+
+  if (!usage) {
+    return false;
+  }
+
+  if (usage.plan === "pro") {
+    return true;
+  }
+
+  return usage.used < usage.limit;
+}
+
+/**
+ * Increment AI Lead Generator usage.
+ *
+ * Only call this after a successful
+ * prospect research response.
+ */
+export async function incrementLeadSearchUsage(
+  clerkUserId: string
+): Promise<Subscription | null> {
+  const subscription =
+    await ensureMonthlyLeadSearchReset(
+      clerkUserId
+    );
+
+  if (!subscription) {
+    return null;
+  }
+
+  const newUsage =
+    subscription.lead_searches_used + 1;
+
+  const { data, error } =
+    await supabaseAdmin
+      .from("subscriptions")
+      .update({
+        lead_searches_used: newUsage,
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq("clerk_user_id", clerkUserId)
+      .select()
+      .single();
+
+  if (error) {
+    console.error(
+      "Increment lead search usage error:",
       error
     );
 

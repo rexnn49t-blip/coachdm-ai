@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 
+import {
+  canGenerateLeadSearch,
+  getLeadSearchUsage,
+  incrementLeadSearchUsage,
+} from "@/lib/subscription-db";
+
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -62,6 +68,49 @@ export async function POST(req: NextRequest) {
 
     /*
     =====================================================
+    AI LEAD SEARCH USAGE LIMIT
+    =====================================================
+
+    Free:
+    - 3 AI searches per month
+
+    Pro:
+    - Unlimited AI searches
+
+    IMPORTANT:
+    This check happens BEFORE OpenRouter is called
+    so users who reached their limit do not consume
+    OpenRouter credits.
+    =====================================================
+    */
+
+    const usage = await getLeadSearchUsage(userId);
+
+    if (!usage) {
+      return NextResponse.json(
+        {
+          error:
+            "Unable to check AI Lead Generator usage.",
+        },
+        { status: 500 }
+      );
+    }
+
+    const allowed = await canGenerateLeadSearch(userId);
+
+    if (!allowed) {
+      return NextResponse.json(
+        {
+          error:
+            "You've reached your 3 AI searches this month. Upgrade to Pro for unlimited lead generation.",
+          code: "LEAD_SEARCH_LIMIT_REACHED",
+        },
+        { status: 403 }
+      );
+    }
+
+    /*
+    =====================================================
     REAL WEB PROSPECT RESEARCH
     =====================================================
 
@@ -69,6 +118,7 @@ export async function POST(req: NextRequest) {
     for real potential clients.
 
     IMPORTANT:
+
     Quality is more important than quantity.
 
     Maximum:
@@ -341,13 +391,13 @@ CURRENTNESS / RECENCY REQUIREMENT
 Prefer recent public evidence that the person's relevant
 goal, challenge, or situation is current.
 
-For a prospect to qualify, there should preferably be public evidence
-from the last 12 months showing that the relevant goal, challenge,
-or situation is still current.
+For a prospect to qualify, there should preferably be
+public evidence from the last 12 months showing that the
+relevant goal, challenge, or situation is still current.
 
-If the only relevant evidence is older than 12 months, reject the
-prospect unless there is newer public evidence confirming that the
-same situation remains relevant.
+If the only relevant evidence is older than 12 months,
+reject the prospect unless there is newer public evidence
+confirming that the same situation remains relevant.
 
 Do NOT treat an old completed goal, past challenge,
 historical transformation, or outdated circumstance as
@@ -772,6 +822,36 @@ If no suitable prospects can be verified:
             "No suitable potential clients were found from the available public information. Try adjusting the niche, ideal client, goal, or location.",
         },
         { status: 404 }
+      );
+    }
+
+    /*
+    =====================================================
+    INCREMENT SUCCESSFUL AI SEARCH USAGE
+    =====================================================
+
+    Only successful research consumes one monthly
+    AI Lead Generator search.
+
+    Failed searches do NOT consume usage.
+    =====================================================
+    */
+
+    const usageIncremented =
+      await incrementLeadSearchUsage(userId);
+
+    if (!usageIncremented) {
+      console.error(
+        "Failed to increment lead search usage for user:",
+        userId
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            "The prospects were researched, but usage could not be recorded. Please try again.",
+        },
+        { status: 500 }
       );
     }
 

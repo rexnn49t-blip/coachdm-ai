@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Sparkles,
   Users,
@@ -20,6 +20,14 @@ type GeneratedLead = {
   sourceUrl: string;
 };
 
+type LeadGeneratorStats = {
+  searchesUsed: number;
+  searchesLimit: number;
+  searchesRemaining: number;
+  plan: "free" | "pro";
+  savedLeads: number;
+};
+
 export default function LeadGenerator() {
   const [niche, setNiche] = useState("");
   const [idealClient, setIdealClient] = useState("");
@@ -31,6 +39,39 @@ export default function LeadGenerator() {
   const [loading, setLoading] = useState(false);
   const [savedLeads, setSavedLeads] = useState<string[]>([]);
   const [error, setError] = useState("");
+
+  // Lead Generator usage stats
+  const [stats, setStats] =
+    useState<LeadGeneratorStats | null>(null);
+
+  async function loadStats() {
+    try {
+      const response = await fetch(
+        "/api/generate-leads/stats",
+        {
+          method: "GET",
+          cache: "no-store",
+        }
+      );
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+
+      setStats(data);
+    } catch (error) {
+      console.error(
+        "Failed to load Lead Generator stats:",
+        error
+      );
+    }
+  }
+
+  useEffect(() => {
+    loadStats();
+  }, []);
 
   async function generateLeads() {
     setError("");
@@ -75,6 +116,9 @@ export default function LeadGenerator() {
 
       // New search = new set of prospects
       setSavedLeads([]);
+
+      // Refresh usage stats after successful search
+      await loadStats();
     } catch (err) {
       setError(
         err instanceof Error
@@ -91,22 +135,22 @@ export default function LeadGenerator() {
     await generateLeads();
   }
 
-async function handleSaveLead(
-  lead: GeneratedLead
-) {
-  try {
-    const response = await fetch(
-      "/api/leads",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: lead.name,
-          source: "AI Web Prospect Finder",
-          goal: lead.goal,
-          notes: `${lead.profile}
+  async function handleSaveLead(
+    lead: GeneratedLead
+  ) {
+    try {
+      const response = await fetch(
+        "/api/leads",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: lead.name,
+            source: "AI Web Prospect Finder",
+            goal: lead.goal,
+            notes: `${lead.profile}
 
 Why they may be a fit:
 ${lead.whyFit}
@@ -116,40 +160,45 @@ ${lead.conversationAngle}
 
 Public source:
 ${lead.sourceUrl}`,
-        }),
-      }
-    );
+          }),
+        }
+      );
 
-    const data = await response.json().catch(() => null);
+      const data = await response
+        .json()
+        .catch(() => null);
 
-    if (!response.ok) {
-      if (
-        response.status === 403 &&
-        data?.code === "LEAD_LIMIT_REACHED"
-      ) {
+      if (!response.ok) {
+        if (
+          response.status === 403 &&
+          data?.code === "LEAD_LIMIT_REACHED"
+        ) {
+          throw new Error(
+            "You've reached your lead limit. Upgrade to Pro for unlimited leads."
+          );
+        }
+
         throw new Error(
-          "You've reached your lead limit. Upgrade to Pro for unlimited leads."
+          data?.error ||
+            "Unable to save lead."
         );
       }
 
-      throw new Error(
-        data?.error ||
-          "Unable to save lead."
+      setSavedLeads((current) => [
+        ...current,
+        lead.name,
+      ]);
+
+      // Refresh saved lead count
+      await loadStats();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to save this lead."
       );
     }
-
-    setSavedLeads((current) => [
-      ...current,
-      lead.name,
-    ]);
-  } catch (err) {
-    setError(
-      err instanceof Error
-        ? err.message
-        : "Unable to save this lead."
-    );
   }
-}
 
   return (
     <section className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.025] to-transparent p-6 sm:p-8">
@@ -182,6 +231,75 @@ ${lead.sourceUrl}`,
             Web Research + AI
           </div>
         </div>
+
+        {/* Lead Generator Stats */}
+        {stats && (
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {/* AI Searches */}
+            <div className="rounded-2xl border border-white/[0.07] bg-black/40 p-5">
+              <p className="text-sm text-zinc-500">
+                AI Searches
+              </p>
+
+              <p className="mt-2 text-2xl font-semibold text-white">
+                {stats.plan === "pro"
+                  ? "Unlimited"
+                  : `${stats.searchesUsed}/${stats.searchesLimit}`}
+              </p>
+
+              <p className="mt-1 text-xs text-zinc-600">
+                This month
+              </p>
+            </div>
+
+            {/* Current Plan */}
+            <div className="rounded-2xl border border-white/[0.07] bg-black/40 p-5">
+              <p className="text-sm text-zinc-500">
+                Current Plan
+              </p>
+
+              <p className="mt-2 text-2xl font-semibold capitalize text-white">
+                {stats.plan}
+              </p>
+
+              <p className="mt-1 text-xs text-zinc-600">
+                AI Lead Generator
+              </p>
+            </div>
+
+            {/* AI Leads Saved */}
+            <div className="rounded-2xl border border-white/[0.07] bg-black/40 p-5">
+              <p className="text-sm text-zinc-500">
+                AI Leads Saved
+              </p>
+
+              <p className="mt-2 text-2xl font-semibold text-white">
+                {stats.savedLeads}
+              </p>
+
+              <p className="mt-1 text-xs text-zinc-600">
+                From AI prospect research
+              </p>
+            </div>
+
+            {/* Searches Remaining */}
+            <div className="rounded-2xl border border-white/[0.07] bg-black/40 p-5">
+              <p className="text-sm text-zinc-500">
+                Searches Remaining
+              </p>
+
+              <p className="mt-2 text-2xl font-semibold text-white">
+                {stats.plan === "pro"
+                  ? "Unlimited"
+                  : stats.searchesRemaining}
+              </p>
+
+              <p className="mt-1 text-xs text-zinc-600">
+                Resets monthly
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Form */}
         <div className="mt-8 grid gap-5 lg:grid-cols-2">
@@ -277,7 +395,6 @@ ${lead.sourceUrl}`,
               <option value="2">
                 2 prospects
               </option>
-
             </select>
           </div>
 

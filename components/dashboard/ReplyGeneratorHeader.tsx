@@ -11,6 +11,7 @@ import {
   Target,
   WandSparkles,
   X,
+  MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -52,6 +53,14 @@ const tones = [
     useWhen:
       "Use when a lead understands the problem but needs more motivation, value, or clarity to move forward.",
   },
+  {
+  name: "Friendly",
+  icon: MessageCircle,
+  description:
+    "Warm, approachable, and conversational without sounding overly formal or salesy.",
+  useWhen:
+    "Use when you want to build rapport and keep the conversation natural.",
+},
 ];
 
 export default function ReplyGeneratorHeader({
