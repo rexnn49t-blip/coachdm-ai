@@ -138,13 +138,13 @@ export default async function DashboardPage({
 
           <div className="space-y-8">
 
-  {/* AI Sales Roleplay Header */}
-  <SalesRoleplayHeader />
+            {/* AI Sales Roleplay Header */}
+            <SalesRoleplayHeader />
 
-  {/* AI Sales Roleplay */}
-  <SalesRoleplay />
+            {/* AI Sales Roleplay */}
+            <SalesRoleplay />
 
-</div>
+          </div>
 
         ) : showLeadGenerator ? (
 
@@ -152,15 +152,15 @@ export default async function DashboardPage({
           /* AI LEAD GENERATOR PAGE */
           /* ================================================== */
 
-         <div className="space-y-8">
+          <div className="space-y-8">
 
-  {/* AI Lead Generator Header */}
-  <AISalesLeadGeneratorHeader />
+            {/* AI Lead Generator Header */}
+            <AISalesLeadGeneratorHeader />
 
-  {/* AI Lead Generator */}
-  <LeadGenerator />
+            {/* AI Lead Generator */}
+            <LeadGenerator />
 
-</div>
+          </div>
 
         ) : (
 
@@ -183,156 +183,156 @@ export default async function DashboardPage({
             <StatsCards stats={stats} />
 
             {/* Interface Entry Cards */}
-<div className="grid gap-5 lg:grid-cols-2">
+            <div className="grid gap-5 lg:grid-cols-2">
 
-  {/* ================================================== */}
-  {/* LEADS & FOLLOW-UPS */}
-  {/* ================================================== */}
+              {/* ================================================== */}
+              {/* AI REPLY GENERATOR */}
+              {/* ================================================== */}
 
-  <Link
-    href="/leads"
-    className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-blue-400/25 hover:bg-white/[0.035] sm:p-7"
-  >
-    {/* Glow */}
-    <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/[0.07] blur-3xl transition group-hover:bg-blue-500/[0.13]" />
+              <Link
+                href="/dashboard?view=generator"
+                className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-violet-500/[0.09] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-violet-400/25 hover:bg-white/[0.035] sm:p-7"
+              >
+                {/* Glow */}
+                <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-violet-500/[0.08] blur-3xl transition group-hover:bg-violet-500/[0.14]" />
 
-    <div className="relative">
+                <div className="relative">
 
-      {/* Icon + Arrow */}
-      <div className="flex items-start justify-between gap-4">
+                  {/* Icon + Arrow */}
+                  <div className="flex items-start justify-between gap-4">
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-400/10 text-blue-300">
-          <Users className="h-5 w-5" />
-        </div>
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-400/10 text-violet-300">
+                      <Sparkles className="h-5 w-5" />
+                    </div>
 
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-zinc-500 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.08] group-hover:text-blue-300">
-          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-        </div>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-zinc-500 transition group-hover:border-violet-400/20 group-hover:bg-violet-400/[0.08] group-hover:text-violet-300">
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </div>
 
-      </div>
+                  </div>
 
-      {/* Title */}
-      <h2 className="mt-6 text-lg font-semibold tracking-tight text-white sm:text-xl">
-        Leads & Follow-Ups
-      </h2>
+                  {/* Title */}
+                  <h2 className="mt-6 text-lg font-semibold tracking-tight text-white sm:text-xl">
+                    AI Reply Generator
+                  </h2>
 
-      {/* Description */}
-      <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">
-        Manage your leads, priorities,
-        conversations, and follow-ups.
-      </p>
+                  {/* Description */}
+                  <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">
+                    Generate personalized, high-converting
+                    replies for your leads with AI.
+                  </p>
 
-      {/* Button */}
-    <div className="mt-6 inline-flex min-w-[164px] items-center justify-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.06] group-hover:text-white">
-  Open Leads
+                  {/* Button */}
+                  <div className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-violet-400/20 group-hover:bg-violet-400/[0.06] group-hover:text-white">
+                    Open Reply Generator
 
-  <ArrowRight className="h-3.5 w-3.5" />
-</div>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
 
-    </div>
-  </Link>
+                </div>
+              </Link>
 
-  {/* ================================================== */}
-  {/* AI SALES ROLEPLAY */}
-  {/* ================================================== */}
+              {/* ================================================== */}
+              {/* LEADS & FOLLOW-UPS */}
+              {/* ================================================== */}
 
-  <SalesRoleplayCard />
+              <Link
+                href="/leads"
+                className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-blue-400/25 hover:bg-white/[0.035] sm:p-7"
+              >
+                {/* Glow */}
+                <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/[0.07] blur-3xl transition group-hover:bg-blue-500/[0.13]" />
 
-  {/* ================================================== */}
-  {/* AI REPLY GENERATOR */}
-  {/* ================================================== */}
+                <div className="relative">
 
-  <Link
-    href="/dashboard?view=generator"
-    className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-violet-500/[0.09] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-violet-400/25 hover:bg-white/[0.035] sm:p-7"
-  >
-    {/* Glow */}
-    <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-violet-500/[0.08] blur-3xl transition group-hover:bg-violet-500/[0.14]" />
+                  {/* Icon + Arrow */}
+                  <div className="flex items-start justify-between gap-4">
 
-    <div className="relative">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-400/10 text-blue-300">
+                      <Users className="h-5 w-5" />
+                    </div>
 
-      {/* Icon + Arrow */}
-      <div className="flex items-start justify-between gap-4">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-zinc-500 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.08] group-hover:text-blue-300">
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </div>
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-400/10 text-violet-300">
-          <Sparkles className="h-5 w-5" />
-        </div>
+                  </div>
 
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-zinc-500 transition group-hover:border-violet-400/20 group-hover:bg-violet-400/[0.08] group-hover:text-violet-300">
-          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-        </div>
+                  {/* Title */}
+                  <h2 className="mt-6 text-lg font-semibold tracking-tight text-white sm:text-xl">
+                    Leads & Follow-Ups
+                  </h2>
 
-      </div>
+                  {/* Description */}
+                  <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">
+                    Manage your leads, priorities,
+                    conversations, and follow-ups.
+                  </p>
 
-      {/* Title */}
-      <h2 className="mt-6 text-lg font-semibold tracking-tight text-white sm:text-xl">
-        AI Reply Generator
-      </h2>
+                  {/* Button */}
+                  <div className="mt-6 inline-flex min-w-[164px] items-center justify-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.06] group-hover:text-white">
+                    Open Leads
 
-      {/* Description */}
-      <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">
-        Generate personalized, high-converting
-        replies for your leads with AI.
-      </p>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
 
-      {/* Button */}
-      <div className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-violet-400/20 group-hover:bg-violet-400/[0.06] group-hover:text-white">
-        Open Reply Generator
+                </div>
+              </Link>
 
-        <ArrowRight className="h-3.5 w-3.5" />
-      </div>
+              {/* ================================================== */}
+              {/* AI LEAD GENERATOR */}
+              {/* ================================================== */}
 
-    </div>
-  </Link>
+              <Link
+                href="/dashboard?view=lead-generator"
+                className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-blue-400/25 hover:bg-white/[0.035] sm:p-7"
+              >
+                {/* Glow */}
+                <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/[0.07] blur-3xl transition group-hover:bg-blue-500/[0.13]" />
 
-  {/* ================================================== */}
-  {/* AI LEAD GENERATOR */}
-  {/* ================================================== */}
+                <div className="relative">
 
-  <Link
-    href="/dashboard?view=lead-generator"
-    className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-blue-400/25 hover:bg-white/[0.035] sm:p-7"
-  >
-    {/* Glow */}
-    <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/[0.07] blur-3xl transition group-hover:bg-blue-500/[0.13]" />
+                  {/* Icon + Arrow */}
+                  <div className="flex items-start justify-between gap-4">
 
-    <div className="relative">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-400/10 text-blue-300">
+                      <Users className="h-5 w-5" />
+                    </div>
 
-      {/* Icon + Arrow */}
-      <div className="flex items-start justify-between gap-4">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-zinc-500 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.08] group-hover:text-blue-300">
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </div>
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-400/10 text-blue-300">
-          <Users className="h-5 w-5" />
-        </div>
+                  </div>
 
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-zinc-500 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.08] group-hover:text-blue-300">
-          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-        </div>
+                  {/* Title */}
+                  <h2 className="mt-6 text-lg font-semibold tracking-tight text-white sm:text-xl">
+                    AI Lead Generator
+                  </h2>
 
-      </div>
+                  {/* Description */}
+                  <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">
+                    Discover potential client profiles
+                    that match your coaching niche.
+                  </p>
 
-      {/* Title */}
-      <h2 className="mt-6 text-lg font-semibold tracking-tight text-white sm:text-xl">
-        AI Lead Generator
-      </h2>
+                  {/* Button */}
+                  <div className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.06] group-hover:text-white">
+                    Open Lead Generator
 
-      {/* Description */}
-      <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">
-        Discover potential client profiles
-        that match your coaching niche.
-      </p>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
 
-      {/* Button */}
-      <div className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.06] group-hover:text-white">
-        Open Lead Generator
+                </div>
+              </Link>
 
-        <ArrowRight className="h-3.5 w-3.5" />
-      </div>
+              {/* ================================================== */}
+              {/* AI SALES ROLEPLAY */}
+              {/* ================================================== */}
 
-    </div>
-  </Link>
+              <SalesRoleplayCard />
 
-</div>
+            </div>
           </div>
         )}
 
