@@ -16,8 +16,13 @@ type Subscription = {
   current_period_start: string | null;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
+
   replies_used?: number | null;
   replies_limit?: number | null;
+
+  lead_searches_used?: number | null;
+  lead_searches_reset_at?: string | null;
+
   created_at: string;
   updated_at: string;
 };
@@ -31,6 +36,15 @@ type Reply = {
   length: string | null;
   created_at: string;
   favorite: boolean;
+};
+
+type Lead = {
+  id: string;
+  clerk_user_id: string;
+  name: string;
+  source: string | null;
+  goal: string | null;
+  created_at: string;
 };
 
 export default async function AdminPage() {
@@ -95,6 +109,31 @@ export default async function AdminPage() {
   const replies = (replyData as Reply[]) ?? [];
 
   // -----------------------------------------
+// FETCH LEADS
+// -----------------------------------------
+
+const {
+  data: leadData,
+  error: leadsError,
+} = await supabaseAdmin
+  .from("leads")
+  .select(
+    "id, clerk_user_id, name, source, goal, created_at"
+  )
+  .order("created_at", {
+    ascending: false,
+  });
+
+if (leadsError) {
+  console.error(
+    "Admin leads error:",
+    leadsError
+  );
+}
+
+const leads = (leadData as Lead[]) ?? [];
+
+  // -----------------------------------------
   // STATISTICS
   // -----------------------------------------
 
@@ -125,6 +164,59 @@ export default async function AdminPage() {
       Number(user.replies_used ?? 0),
     0
   );
+
+  const totalLeadSearches = users.reduce(
+  (total, user) =>
+    total +
+    Number(user.lead_searches_used ?? 0),
+  0
+);
+
+const totalLeads = leads.length;
+
+const aiLeadsSaved = leads.filter(
+  (lead) =>
+    lead.source ===
+    "AI Web Prospect Finder"
+).length;
+
+const usersAtLeadSearchLimit =
+  users.filter((user) => {
+    const plan =
+      user.plan?.toLowerCase();
+
+    const used = Number(
+      user.lead_searches_used ?? 0
+    );
+
+    return (
+      plan === "free" &&
+      used >= 3
+    );
+  }).length;
+
+const usersNearLeadSearchLimit =
+  users.filter((user) => {
+    const plan =
+      user.plan?.toLowerCase();
+
+    const used = Number(
+      user.lead_searches_used ?? 0
+    );
+
+    return (
+      plan === "free" &&
+      used > 0 &&
+      used < 3 &&
+      used >= 2
+    );
+  }).length;
+
+const aiLeads = leads.filter(
+  (lead) =>
+    lead.source ===
+    "AI Web Prospect Finder"
+);
 
   const usersAtLimit = users.filter(
     (user) => {
@@ -265,30 +357,54 @@ export default async function AdminPage() {
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-            <MetricCard
-              label="Total users"
-              value={totalUsers}
-              description="Registered accounts"
-            />
+           <MetricCard
+  label="Total users"
+  value={totalUsers}
+  description="Registered accounts"
+/>
 
-            <MetricCard
-              label="Pro users"
-              value={proUsers}
-              description={`${conversionRate}% conversion`}
-              accent="pro"
-            />
+<MetricCard
+  label="Pro users"
+  value={proUsers}
+  description={`${conversionRate}% conversion`}
+  accent="pro"
+/>
 
-            <MetricCard
-              label="Free users"
-              value={freeUsers}
-              description="Free plan accounts"
-            />
+<MetricCard
+  label="AI replies"
+  value={totalReplies}
+  description="Replies generated"
+/>
 
-            <MetricCard
-              label="AI replies"
-              value={totalReplies}
-              description="Replies generated"
-            />
+<MetricCard
+  label="AI searches"
+  value={totalLeadSearches}
+  description="Lead searches performed"
+/>
+
+<MetricCard
+  label="Leads created"
+  value={totalLeads}
+  description="Total saved leads"
+/>
+
+<MetricCard
+  label="AI leads saved"
+  value={aiLeadsSaved}
+  description="Saved from AI discovery"
+/>
+
+<MetricCard
+  label="Free users"
+  value={freeUsers}
+  description="Free plan accounts"
+/>
+
+<MetricCard
+  label="Canceled"
+  value={canceledUsers}
+  description="Canceled subscriptions"
+/>
 
           </div>
         </section>
@@ -380,23 +496,41 @@ export default async function AdminPage() {
             description="Monitor Free-plan limits and engagement."
           />
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
 
             <SmallMetric
-              label="Replies generated"
-              value={totalReplies}
-            />
+  label="Replies generated"
+  value={totalReplies}
+/>
 
-            <SmallMetric
-              label="At Free limit"
-              value={usersAtLimit}
-              warning={usersAtLimit > 0}
-            />
+<SmallMetric
+  label="AI searches"
+  value={totalLeadSearches}
+/>
 
-            <SmallMetric
-              label="Near Free limit"
-              value={usersNearLimit}
-            />
+<SmallMetric
+  label="Users at reply limit"
+  value={usersAtLimit}
+  warning={usersAtLimit > 0}
+/>
+
+<SmallMetric
+  label="Users near reply limit"
+  value={usersNearLimit}
+/>
+
+<SmallMetric
+  label="At search limit"
+  value={usersAtLeadSearchLimit}
+  warning={
+    usersAtLeadSearchLimit > 0
+  }
+/>
+
+<SmallMetric
+  label="Near search limit"
+  value={usersNearLeadSearchLimit}
+/>
 
           </div>
         </section>
@@ -414,8 +548,7 @@ export default async function AdminPage() {
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1050px] text-left">
-
+              <table className="w-full min-w-[1250px] text-left">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/[0.02]">
                     <TableHeader>
@@ -431,12 +564,20 @@ export default async function AdminPage() {
                     </TableHeader>
 
                     <TableHeader>
-                      Usage
-                    </TableHeader>
+  Replies
+</TableHeader>
 
-                    <TableHeader>
-                      Billing
-                    </TableHeader>
+<TableHeader>
+  AI Searches
+</TableHeader>
+
+<TableHeader>
+  Leads
+</TableHeader>
+
+<TableHeader>
+  Billing
+</TableHeader>
 
                     <TableHeader>
                       Joined
@@ -466,6 +607,18 @@ export default async function AdminPage() {
                       Number(
                         user.replies_limit ?? 3
                       );
+
+                      const leadSearches =
+  Number(
+    user.lead_searches_used ?? 0
+  );
+
+const userLeads =
+  leads.filter(
+    (lead) =>
+      lead.clerk_user_id ===
+      user.clerk_user_id
+  ).length;
 
                     const percentage =
                       isPro ||
@@ -552,7 +705,7 @@ export default async function AdminPage() {
                           </div>
                         </td>
 
-                        {/* USAGE */}
+                        {/* REPLIES */}
 
                         <td className="px-5 py-5">
 
@@ -594,6 +747,40 @@ export default async function AdminPage() {
                           )}
 
                         </td>
+
+                        {/* AI SEARCHES */}
+
+<td className="px-5 py-5">
+  {isPro ? (
+    <span className="text-sm text-white/35">
+      Unlimited
+    </span>
+  ) : (
+    <div>
+      <span className="text-sm text-white/60">
+        {leadSearches} / 3
+      </span>
+
+      <p className="mt-1 text-[10px] text-white/25">
+        AI searches this month
+      </p>
+    </div>
+  )}
+</td>
+
+{/* LEADS */}
+
+<td className="px-5 py-5">
+  <div>
+    <span className="text-sm text-white/60">
+      {userLeads}
+    </span>
+
+    <p className="mt-1 text-[10px] text-white/25">
+      Saved leads
+    </p>
+  </div>
+</td>
 
                         {/* BILLING */}
 
@@ -661,7 +848,7 @@ export default async function AdminPage() {
                   {users.length === 0 && (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={9}
                         className="px-6 py-16 text-center"
                       >
                         <p className="text-sm text-white/40">
@@ -677,113 +864,188 @@ export default async function AdminPage() {
           </div>
         </section>
 
-        {/* ================================= */}
-        {/* RECENT ACTIVITY */}
-        {/* ================================= */}
+{/* ================================= */}
+{/* RECENT AI ACTIVITY */}
+{/* ================================= */}
 
-        <section className="mt-10 pb-10">
-          <SectionHeader
-            title="Recent AI activity"
-            description="The latest replies generated by your users."
-          />
+<section className="mt-10 pb-10">
+  <SectionHeader
+    title="Recent AI activity"
+    description="The latest AI replies and prospects discovered by your users."
+  />
 
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
+  <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
 
-            {replies.length === 0 ? (
-              <div className="px-6 py-16 text-center">
-                <p className="text-sm text-white/40">
-                  No AI activity yet.
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-white/[0.06]">
+    {replies.length === 0 && aiLeads.length === 0 ? (
+      <div className="px-6 py-16 text-center">
+        <p className="text-sm text-white/40">
+          No AI activity yet.
+        </p>
+      </div>
+    ) : (
+      <div className="divide-y divide-white/[0.06]">
 
-                {replies.map((reply) => (
-                  <div
-                    key={reply.id}
-                    className="px-5 py-5 transition-colors hover:bg-white/[0.02] sm:px-6"
-                  >
+        {/* AI LEADS */}
 
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        {aiLeads.slice(0, 10).map((lead) => (
+          <div
+            key={`lead-${lead.id}`}
+            className="px-5 py-5 transition-colors hover:bg-white/[0.02] sm:px-6"
+          >
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 
-                      <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1">
 
-                        <div className="mb-3 flex flex-wrap items-center gap-2">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
 
-                          <span className="text-sm font-medium text-white">
-                            {getUserEmail(
-                              reply.clerk_user_id
-                            )}
-                          </span>
+                  <span className="text-sm font-medium text-white">
+                    {getUserEmail(
+                      lead.clerk_user_id
+                    )}
+                  </span>
 
-                          <Badge variant="subtle">
-                            {reply.tone ??
-                              "Professional"}
-                          </Badge>
+                  <Badge variant="subtle">
+                    AI Lead
+                  </Badge>
 
-                          <Badge variant="subtle">
-                            {reply.length ??
-                              "Medium"}
-                          </Badge>
+                  <span className="text-xs text-white/30">
+                    Saved prospect
+                  </span>
 
-                          {reply.favorite && (
-                            <span className="text-xs text-white/40">
-                              ★ Favorite
-                            </span>
-                          )}
+                </div>
 
-                        </div>
+                <div className="grid gap-3 lg:grid-cols-2">
 
-                        <div className="grid gap-3 lg:grid-cols-2">
+                  <div className="rounded-xl border border-white/[0.06] bg-black/20 p-4">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/25">
+                      Prospect
+                    </p>
 
-                          <div className="rounded-xl border border-white/[0.06] bg-black/20 p-4">
-                            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/25">
-                              Lead
-                            </p>
+                    <p className="text-sm font-medium text-white/70">
+                      {lead.name}
+                    </p>
 
-                            <p className="line-clamp-3 text-sm leading-6 text-white/55">
-                              {reply.lead_message}
-                            </p>
-                          </div>
-
-                          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/25">
-                              AI reply
-                            </p>
-
-                            <p className="line-clamp-3 text-sm leading-6 text-white/70">
-                              {reply.ai_reply}
-                            </p>
-                          </div>
-
-                        </div>
-
-                      </div>
-
-                      <span className="shrink-0 text-xs text-white/25">
-                        {formatDateTime(
-                          reply.created_at
-                        )}
-                      </span>
-
-                    </div>
-
+                    {lead.goal && (
+                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-white/45">
+                        Goal: {lead.goal}
+                      </p>
+                    )}
                   </div>
-                ))}
+
+                  <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/25">
+                      Source
+                    </p>
+
+                    <p className="text-sm leading-6 text-white/55">
+                      AI Web Prospect Finder
+                    </p>
+                  </div>
+
+                </div>
 
               </div>
-            )}
 
+              <span className="shrink-0 text-xs text-white/25">
+                {formatDateTime(
+                  lead.created_at
+                )}
+              </span>
+
+            </div>
           </div>
+        ))}
 
-          <p className="mt-4 text-right text-xs text-white/20">
-            Showing the latest {replies.length} replies
-            {favoriteReplies > 0
-              ? ` · ${favoriteReplies} favorites`
-              : ""}
-          </p>
+        {/* AI REPLIES */}
 
-        </section>
+        {replies.slice(0, 10).map((reply) => (
+          <div
+            key={`reply-${reply.id}`}
+            className="px-5 py-5 transition-colors hover:bg-white/[0.02] sm:px-6"
+          >
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+
+              <div className="min-w-0 flex-1">
+
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+
+                  <span className="text-sm font-medium text-white">
+                    {getUserEmail(
+                      reply.clerk_user_id
+                    )}
+                  </span>
+
+                  <Badge variant="subtle">
+                    AI Reply
+                  </Badge>
+
+                  <Badge variant="subtle">
+                    {reply.tone ??
+                      "Professional"}
+                  </Badge>
+
+                  <Badge variant="subtle">
+                    {reply.length ??
+                      "Medium"}
+                  </Badge>
+
+                  {reply.favorite && (
+                    <span className="text-xs text-white/40">
+                      ★ Favorite
+                    </span>
+                  )}
+
+                </div>
+
+                <div className="grid gap-3 lg:grid-cols-2">
+
+                  <div className="rounded-xl border border-white/[0.06] bg-black/20 p-4">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/25">
+                      Lead
+                    </p>
+
+                    <p className="line-clamp-3 text-sm leading-6 text-white/55">
+                      {reply.lead_message}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/25">
+                      AI reply
+                    </p>
+
+                    <p className="line-clamp-3 text-sm leading-6 text-white/70">
+                      {reply.ai_reply}
+                    </p>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <span className="shrink-0 text-xs text-white/25">
+                {formatDateTime(
+                  reply.created_at
+                )}
+              </span>
+
+            </div>
+          </div>
+        ))}
+
+      </div>
+    )}
+
+  </div>
+
+  <p className="mt-4 text-right text-xs text-white/20">
+    Showing up to 10 recent AI leads and 10 recent AI replies
+    {favoriteReplies > 0
+      ? ` · ${favoriteReplies} favorite replies`
+      : ""}
+  </p>
+
+</section>
 
       </div>
     </main>
