@@ -4,7 +4,8 @@ import Link from "next/link";
 import {
   ArrowRight,
   Sparkles,
-  Users,
+  UserSearch,
+  UsersRound,
 } from "lucide-react";
 
 import { createUserIfNotExists } from "@/lib/create-user";
@@ -191,12 +192,12 @@ export default async function DashboardPage({
 
               <Link
                 href="/dashboard?view=generator"
-                className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-violet-500/[0.09] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-violet-400/25 hover:bg-white/[0.035] sm:p-7"
+               className="group relative flex h-[248px] flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-violet-500/[0.09] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-violet-400/25 hover:bg-white/[0.035] sm:p-7"
               >
                 {/* Glow */}
                 <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-violet-500/[0.08] blur-3xl transition group-hover:bg-violet-500/[0.14]" />
 
-                <div className="relative">
+                <div className="relative flex h-full flex-col">
 
                   {/* Icon + Arrow */}
                   <div className="flex items-start justify-between gap-4">
@@ -223,11 +224,11 @@ export default async function DashboardPage({
                   </p>
 
                   {/* Button */}
-                  <div className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-violet-400/20 group-hover:bg-violet-400/[0.06] group-hover:text-white">
-                    Open Reply Generator
+                <div className="mt-auto inline-flex min-w-[164px] items-center justify-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-violet-400/20 group-hover:bg-violet-400/[0.06] group-hover:text-white">
+  Open Reply Generator
 
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </div>
+  <ArrowRight className="h-3.5 w-3.5" />
+</div>
 
                 </div>
               </Link>
@@ -238,18 +239,18 @@ export default async function DashboardPage({
 
               <Link
                 href="/leads"
-                className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-blue-400/25 hover:bg-white/[0.035] sm:p-7"
+               className="group relative flex h-[248px] flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-blue-400/25 hover:bg-white/[0.035] sm:p-7"
               >
                 {/* Glow */}
                 <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/[0.07] blur-3xl transition group-hover:bg-blue-500/[0.13]" />
 
-                <div className="relative">
+                <div className="relative flex h-full flex-col">
 
                   {/* Icon + Arrow */}
                   <div className="flex items-start justify-between gap-4">
 
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-400/10 text-blue-300">
-                      <Users className="h-5 w-5" />
+                      <UsersRound className="h-5 w-5" />
                     </div>
 
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-zinc-500 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.08] group-hover:text-blue-300">
@@ -270,7 +271,7 @@ export default async function DashboardPage({
                   </p>
 
                   {/* Button */}
-                  <div className="mt-6 inline-flex min-w-[164px] items-center justify-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.06] group-hover:text-white">
+                  <div className="mt-auto inline-flex min-w-[164px] items-center justify-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.06] group-hover:text-white">
                     Open Leads
 
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -284,19 +285,19 @@ export default async function DashboardPage({
               {/* ================================================== */}
 
               <Link
-                href="/dashboard?view=lead-generator"
-                className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-blue-400/25 hover:bg-white/[0.035] sm:p-7"
-              >
+  href="/dashboard?view=lead-generator"
+  className="group relative flex h-[248px] flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.025] to-transparent p-6 transition-all duration-300 hover:border-blue-400/25 hover:bg-white/[0.035] sm:p-7"
+>
                 {/* Glow */}
                 <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/[0.07] blur-3xl transition group-hover:bg-blue-500/[0.13]" />
 
-                <div className="relative">
+              <div className="relative flex h-full flex-col">
 
                   {/* Icon + Arrow */}
                   <div className="flex items-start justify-between gap-4">
 
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-400/10 text-blue-300">
-                      <Users className="h-5 w-5" />
+                     <UserSearch className="h-5 w-5" />
                     </div>
 
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-zinc-500 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.08] group-hover:text-blue-300">
@@ -317,7 +318,7 @@ export default async function DashboardPage({
                   </p>
 
                   {/* Button */}
-                  <div className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.06] group-hover:text-white">
+                  <div className="mt-auto inline-flex min-w-[164px] items-center justify-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/[0.06] group-hover:text-white">
                     Open Lead Generator
 
                     <ArrowRight className="h-3.5 w-3.5" />

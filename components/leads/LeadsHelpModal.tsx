@@ -22,10 +22,50 @@ import {
   Activity,
   UserCheck,
   Users,
+  ArrowDown,
+  CheckCircle2,
 } from "lucide-react";
 
 export default function LeadsHelpModal() {
   const [open, setOpen] = useState(false);
+
+  const workflowSteps = [
+    {
+      number: "1",
+      title: "Add a Lead",
+      description:
+        "Save the person's details, coaching goal, source, and first message.",
+      icon: UserPlus,
+    },
+    {
+      number: "2",
+      title: "Record the Conversation",
+      description:
+        "Record the lead's messages and your replies so CoachDM has conversation context.",
+      icon: MessagesSquare,
+    },
+    {
+      number: "3",
+      title: "Check AI Guidance",
+      description:
+        "See the lead's intent, temperature, current stage, and recommended next step.",
+      icon: Sparkles,
+    },
+    {
+      number: "4",
+      title: "Take Action",
+      description:
+        "Reply, handle objections, add notes, or update the lead's journey stage.",
+      icon: WandSparkles,
+    },
+    {
+      number: "5",
+      title: "Follow Up",
+      description:
+        "If the lead is not ready yet, start a follow-up so the conversation does not get forgotten.",
+      icon: Clock3,
+    },
+  ];
 
   const dailyBriefItems = [
     {
@@ -95,7 +135,7 @@ export default function LeadsHelpModal() {
       icon: Route,
       title: "Lead Journey",
       description:
-        "Track where the lead currently is in the sales conversation and move them through the appropriate stages as the relationship develops.",
+        "Track where the lead currently is in the sales conversation and update the stage as the relationship develops.",
     },
     {
       icon: Flag,
@@ -131,7 +171,7 @@ export default function LeadsHelpModal() {
       icon: Clock3,
       title: "Smart Follow-Up",
       description:
-        "Start a follow-up sequence when a conversation needs another touch. CoachDM keeps track of when the next follow-up should happen.",
+        "Start a follow-up when a conversation needs another touch. CoachDM keeps track of when the next follow-up should happen.",
     },
     {
       icon: UserCheck,
@@ -194,10 +234,8 @@ export default function LeadsHelpModal() {
                     </div>
 
                     <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400 sm:text-base">
-                      Everything you need to know about the Leads area —
-                      from today's priorities and opportunities to
-                      conversations, follow-ups, and converting a lead into a
-                      client.
+                      Follow a simple workflow from the first conversation
+                      with a potential client to follow-up and conversion.
                     </p>
                   </div>
                 </div>
@@ -215,7 +253,7 @@ export default function LeadsHelpModal() {
               {/* Main content */}
               <div className="min-h-0 flex-1 overflow-y-auto">
                 <div className="px-6 py-7 sm:px-8 lg:px-10 lg:py-9">
-                  {/* Daily Coach Brief */}
+                  {/* Main workflow */}
                   <section>
                     <div className="mb-5">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-400">
@@ -223,12 +261,86 @@ export default function LeadsHelpModal() {
                       </p>
 
                       <h3 className="mt-1.5 text-lg font-semibold text-white sm:text-xl">
+                        Your Lead Workflow
+                      </h3>
+
+                      <p className="mt-1.5 max-w-2xl text-sm leading-6 text-zinc-500">
+                        This is the simplest way to use Leads & Follow-Ups
+                        inside CoachDM.
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-violet-500/15 bg-violet-500/[0.04] p-5 sm:p-6 lg:p-7">
+                      <div className="grid gap-4 lg:grid-cols-5">
+                        {workflowSteps.map((step, index) => {
+                          const Icon = step.icon;
+
+                          return (
+                            <div key={step.number} className="relative">
+                              <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10">
+                                    <Icon className="h-4.5 w-4.5 text-violet-400" />
+                                  </div>
+
+                                  <span className="text-xs font-semibold text-violet-400">
+                                    Step {step.number}
+                                  </span>
+                                </div>
+
+                                <h4 className="mt-4 text-sm font-semibold text-white">
+                                  {step.title}
+                                </h4>
+
+                                <p className="mt-2 text-sm leading-6 text-zinc-400">
+                                  {step.description}
+                                </p>
+                              </div>
+
+                              {index < workflowSteps.length - 1 && (
+                                <div className="my-2 flex justify-center lg:absolute lg:-right-3 lg:top-1/2 lg:my-0 lg:-translate-y-1/2">
+                                  <ArrowDown className="h-4 w-4 text-zinc-600 lg:hidden" />
+                                  <span className="hidden text-zinc-600 lg:block">
+                                    →
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="mt-5 flex items-start gap-3 border-t border-violet-500/10 pt-5">
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+
+                        <p className="text-sm leading-6 text-zinc-400">
+                          When the lead becomes a client, use{" "}
+                          <span className="font-medium text-white">
+                            Convert to Client
+                          </span>{" "}
+                          to mark the journey as complete.
+                        </p>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Divider */}
+                  <div className="my-10 h-px bg-zinc-800" />
+
+                  {/* Daily Coach Brief */}
+                  <section>
+                    <div className="mb-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-400">
+                        Your Daily Overview
+                      </p>
+
+                      <h3 className="mt-1.5 text-lg font-semibold text-white sm:text-xl">
                         Daily Coach Brief
                       </h3>
 
                       <p className="mt-1.5 max-w-2xl text-sm leading-6 text-zinc-500">
-                        This gives you a quick overview of what deserves your
-                        attention instead of making you inspect every lead.
+                        Start here each day to quickly see which conversations
+                        deserve your attention.
                       </p>
                     </div>
 
@@ -332,9 +444,9 @@ export default function LeadsHelpModal() {
                       </h3>
 
                       <p className="mt-1.5 max-w-2xl text-sm leading-6 text-zinc-500">
-                        The journey helps you understand where a conversation
-                        currently stands and what kind of action may be needed
-                        next.
+                        Update the journey stage as the conversation develops.
+                        This helps CoachDM understand where the lead currently
+                        stands and provide more relevant guidance.
                       </p>
                     </div>
 
@@ -358,9 +470,9 @@ export default function LeadsHelpModal() {
 
                       <div className="mt-5 border-t border-violet-500/10 pt-5">
                         <p className="text-sm leading-6 text-zinc-400">
-                          You don't have to move through every stage manually.
-                          Update the journey as the conversation develops so
-                          CoachDM can keep the lead's current situation clear.
+                          The stages are there to give you a clear picture of
+                          where each conversation stands. Move the lead to the
+                          stage that best matches the current conversation.
                         </p>
                       </div>
                     </div>
@@ -378,33 +490,39 @@ export default function LeadsHelpModal() {
                         </div>
 
                         <div>
-                          <h3 className="text-base font-semibold text-white sm:text-lg">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-400">
+                            Don't Let Good Leads Go Cold
+                          </p>
+
+                          <h3 className="mt-1.5 text-base font-semibold text-white sm:text-lg">
                             Smart Follow-Ups
                           </h3>
 
                           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
-                            When a conversation needs another touch, start a
-                            follow-up sequence from the lead workspace.
-                            CoachDM keeps track of the follow-up timing so you
-                            know which conversations need attention.
+                            A follow-up is for a lead who hasn't moved forward
+                            yet. If someone is interested but hasn't replied,
+                            hasn't booked a call, or isn't ready to decide,
+                            use Follow-Up to keep the conversation from being
+                            forgotten.
                           </p>
 
                           <div className="mt-5 grid gap-3 sm:grid-cols-3">
                             <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
                               <p className="text-sm font-medium text-white">
-                                Start
+                                Record
                               </p>
                               <p className="mt-1 text-xs leading-5 text-zinc-500">
-                                Begin a follow-up sequence for the lead.
+                                Keep the latest conversation and context up to
+                                date.
                               </p>
                             </div>
 
                             <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
                               <p className="text-sm font-medium text-white">
-                                Track
+                                Follow Up
                               </p>
                               <p className="mt-1 text-xs leading-5 text-zinc-500">
-                                Keep track of when the next contact is due.
+                                Start a follow-up when another touch is needed.
                               </p>
                             </div>
 
@@ -426,13 +544,14 @@ export default function LeadsHelpModal() {
                   {/* Final message */}
                   <div className="mt-8 rounded-2xl border border-violet-500/15 bg-violet-500/[0.04] px-6 py-6 text-center sm:px-8">
                     <p className="text-sm font-medium text-white sm:text-base">
-                      You don't need to manage everything at once.
+                      Start with one lead.
                     </p>
 
                     <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                      Start by adding a lead and recording the conversation.
-                      CoachDM will help you understand the situation, identify
-                      what needs attention, and keep the next steps organized.
+                      Add the lead, record the conversation, check AI
+                      Guidance, take the next action, and follow up when
+                      needed. CoachDM keeps the journey organized along the
+                      way.
                     </p>
                   </div>
                 </div>
