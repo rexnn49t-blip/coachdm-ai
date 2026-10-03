@@ -15,7 +15,7 @@ export default function RepliesHeader() {
           {/* Text */}
           <div className="flex-1">
             <div className="inline-flex items-center rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1">
-              <span className="text-xs font-medium uppercase tracking-wide text-violet-300">
+              <span className="text-xs font-medium tracking-wide text-violet-300">
                 CoachDM AI
               </span>
             </div>

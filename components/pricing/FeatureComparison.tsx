@@ -23,12 +23,12 @@ const features = [
   },
   {
     name: "AI Lead Generator",
-    free: "1 Per Month",
-    pro: "5 Per Month",
+    free: "3 Searches / Month",
+    pro: "Unlimited",
   },
   {
     name: "Lead Management & Guidance",
-    free: "1",
+    free: "1 Lead",
     pro: "Unlimited",
   },
   {
@@ -41,7 +41,6 @@ const features = [
     free: true,
     pro: true,
   },
-  
 ];
 
 function Cell({
@@ -51,14 +50,20 @@ function Cell({
 }) {
   if (typeof value === "boolean") {
     return value ? (
-      <Check className="mx-auto h-5 w-5 text-green-400" />
+      <Check
+        className="mx-auto h-5 w-5 text-emerald-400"
+        strokeWidth={2.5}
+      />
     ) : (
-      <X className="mx-auto h-5 w-5 text-zinc-600" />
+      <X
+        className="mx-auto h-5 w-5 text-zinc-600"
+        strokeWidth={2}
+      />
     );
   }
 
   return (
-    <span className="font-medium text-white">
+    <span className="text-sm font-semibold text-white">
       {value}
     </span>
   );
@@ -66,39 +71,43 @@ function Cell({
 
 export default function FeatureComparison() {
   return (
-    <section className="py-24">
+    <section className="py-24 sm:py-28">
       <div className="mx-auto max-w-6xl px-6">
 
-        <div className="text-center">
+        {/* Header */}
 
-          <h2 className="text-4xl font-bold">
+        <div className="mx-auto max-w-2xl text-center">
+
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Compare Plans
           </h2>
 
-          <p className="mt-4 text-zinc-400">
-            Everything included in every plan.
-            Upgrade whenever you're ready.
+          <p className="mt-4 text-sm leading-6 text-zinc-400 sm:text-base">
+            See exactly what’s included with Free and Pro.
+            Upgrade whenever you’re ready.
           </p>
 
         </div>
 
-        <div className="mt-14 overflow-hidden rounded-3xl border border-white/10">
+        {/* Comparison table */}
 
-          <table className="w-full">
+        <div className="mt-12 overflow-x-auto rounded-3xl border border-white/[0.08] bg-white/[0.02] shadow-2xl shadow-black/20 sm:mt-14">
 
-            <thead className="bg-white/5 backdrop-blur">
+          <table className="w-full min-w-[640px] border-collapse">
+
+            <thead className="bg-white/[0.04]">
 
               <tr>
 
-                <th className="px-8 py-6 text-left text-zinc-300">
+                <th className="px-6 py-5 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 sm:px-8">
                   Features
                 </th>
 
-                <th className="text-center">
+                <th className="w-32 px-4 py-5 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Free
                 </th>
 
-                <th className="text-center text-violet-400">
+                <th className="w-36 px-4 py-5 text-center text-xs font-semibold uppercase tracking-wider text-violet-300">
                   Pro
                 </th>
 
@@ -112,18 +121,18 @@ export default function FeatureComparison() {
 
                 <tr
                   key={feature.name}
-                  className="border-t border-white/10 transition hover:bg-white/[0.03]"
+                  className="border-t border-white/[0.06] transition-colors hover:bg-white/[0.025]"
                 >
 
-                  <td className="px-8 py-6 font-medium">
+                  <td className="px-6 py-5 text-sm font-medium text-zinc-200 sm:px-8">
                     {feature.name}
                   </td>
 
-                  <td className="text-center">
+                  <td className="px-4 py-5 text-center">
                     <Cell value={feature.free} />
                   </td>
 
-                  <td className="text-center">
+                  <td className="bg-violet-500/[0.025] px-4 py-5 text-center">
                     <Cell value={feature.pro} />
                   </td>
 

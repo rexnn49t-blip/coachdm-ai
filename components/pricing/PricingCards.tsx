@@ -15,18 +15,19 @@ import { toast } from "sonner";
 
 const freeFeatures = [
   "3 AI replies / month",
+  "3 AI lead searches / month",
   "Basic reply generation",
   "Reply history",
-  "Lead management",
+  "1 saved lead",
   "Email support",
 ];
 
 const proFeatures = [
   "Unlimited AI replies",
+  "Unlimited AI lead generation",
   "AI follow-up assistance",
   "AI sales roleplay",
-  "AI lead generator",
-  "Unlimited Lead management",
+  "Unlimited lead management",
   "Objection handling",
   "Priority support",
 ];
@@ -42,7 +43,8 @@ export default function PricingCards() {
       return paddle;
     }
 
-    const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
+    const token =
+      process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
 
     if (!token) {
       throw new Error(
@@ -50,10 +52,10 @@ export default function PricingCards() {
       );
     }
 
-   const instance = await initializePaddle({
-  environment: "production",
-  token,
-});
+    const instance = await initializePaddle({
+      environment: "production",
+      token,
+    });
 
     if (!instance) {
       throw new Error(
@@ -103,7 +105,6 @@ export default function PricingCards() {
       paddleInstance.Checkout.open({
         transactionId: data.transactionId,
       });
-
     } catch (error) {
       console.error(
         "Upgrade error:",
@@ -123,144 +124,142 @@ export default function PricingCards() {
   return (
     <section>
       <div className="mx-auto max-w-6xl">
-
-        {/* Cards */}
-
-        <div className="grid gap-10 lg:grid-cols-2">
-
+        <div className="grid gap-8 lg:grid-cols-2">
           {/* FREE */}
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-10 backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:border-violet-500/40">
-
+          <div className="rounded-3xl border border-white/[0.08] bg-white/[0.025] p-7 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-white/[0.14] sm:p-9">
             <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-500/10">
+                <Sparkles className="h-5 w-5 text-violet-300" />
+              </div>
 
-              <Sparkles className="h-6 w-6 text-violet-400" />
+              <div>
+                <h2 className="text-xl font-semibold text-white">
+                  Free
+                </h2>
 
-              <h2 className="text-3xl font-bold">
-                Free
-              </h2>
-
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  Get started with the essentials
+                </p>
+              </div>
             </div>
 
-            <p className="mt-6 text-5xl font-bold">
-              $0
+            <div className="mt-8">
+              <span className="text-5xl font-bold tracking-tight text-white">
+                $0
+              </span>
+
+              <span className="ml-2 text-sm text-zinc-500">
+                forever
+              </span>
+            </div>
+
+            <p className="mt-3 text-sm leading-6 text-zinc-400">
+              Explore CoachDM and start turning conversations
+              into opportunities.
             </p>
 
-            <p className="mt-2 text-zinc-400">
-              Perfect for getting started.
-            </p>
+            <div className="mt-8 space-y-4">
+              {freeFeatures.map((feature) => (
+                <div
+                  key={feature}
+                  className="flex items-start gap-3"
+                >
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
 
-            <div className="mt-10 space-y-5">
-
-              {freeFeatures.map(
-                (feature) => (
-                  <div
-                    key={feature}
-                    className="flex items-center gap-3"
-                  >
-                    <Check className="h-5 w-5 text-green-400" />
-
-                    <span className="text-zinc-300">
-                      {feature}
-                    </span>
-                  </div>
-                )
-              )}
-
+                  <span className="text-sm text-zinc-300">
+                    {feature}
+                  </span>
+                </div>
+              ))}
             </div>
 
             <button
               disabled
-              className="mt-12 w-full rounded-xl border border-white/10 bg-white/5 py-4 font-semibold transition hover:bg-white/10"
+              className="mt-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] py-3.5 text-sm font-semibold text-zinc-400"
             >
               Current Plan
             </button>
-
           </div>
 
           {/* PRO */}
-
-          <div className="relative overflow-hidden rounded-3xl border border-violet-500/40 bg-gradient-to-b from-violet-600/15 to-white/5 p-10 backdrop-blur-xl shadow-[0_0_80px_rgba(139,92,246,.25)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_120px_rgba(139,92,246,.4)]">
+          <div className="relative overflow-hidden rounded-3xl border border-violet-500/30 bg-gradient-to-b from-violet-500/[0.10] via-white/[0.025] to-transparent p-7 shadow-[0_0_70px_rgba(139,92,246,0.12)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-violet-400/40 hover:shadow-[0_0_90px_rgba(139,92,246,0.18)] sm:p-9">
+            {/* Subtle glow */}
+            <div className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-violet-500/[0.10] blur-3xl" />
 
             {/* Badge */}
-
-            <div className="absolute right-6 top-6 rounded-full bg-violet-500 px-4 py-1 text-sm font-semibold">
-              Most Popular
+            <div className="absolute right-6 top-6 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-violet-300">
+              Pro
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="relative flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-500/10">
+                <Crown className="h-5 w-5 text-violet-300" />
+              </div>
 
-              <Crown className="h-6 w-6 text-yellow-400" />
+              <div>
+                <h2 className="text-xl font-semibold text-white">
+                  Pro
+                </h2>
 
-              <h2 className="text-3xl font-bold">
-                Pro
-              </h2>
-
+                <p className="mt-0.5 text-xs text-violet-300/60">
+                  Full access to CoachDM
+                </p>
+              </div>
             </div>
 
-            <div className="mt-8 flex items-end gap-2">
-
-              <span className="text-6xl font-bold">
+            <div className="relative mt-8 flex items-end gap-2">
+              <span className="text-5xl font-bold tracking-tight text-white">
                 ${monthlyPrice}
               </span>
 
-              <span className="pb-2 text-zinc-400">
+              <span className="pb-1.5 text-sm text-zinc-500">
                 /month
               </span>
-
             </div>
 
-            <div className="mt-2 text-zinc-400">
-              Everything you need to convert more leads.
-            </div>
+            <p className="relative mt-3 text-sm leading-6 text-zinc-400">
+              Everything you need to manage conversations,
+              leads, follow-ups, and sales.
+            </p>
 
-            <div className="mt-10 space-y-5">
+            <div className="relative mt-8 space-y-4">
+              {proFeatures.map((feature) => (
+                <div
+                  key={feature}
+                  className="flex items-start gap-3"
+                >
+                  <Zap className="mt-0.5 h-4 w-4 shrink-0 text-violet-300" />
 
-              {proFeatures.map(
-                (feature) => (
-                  <div
-                    key={feature}
-                    className="flex items-center gap-3"
-                  >
+                  <span className="text-sm text-zinc-200">
+                    {feature}
+                  </span>
+                </div>
+              ))}
 
-                    <Zap className="h-5 w-5 text-violet-400" />
+              <div className="flex items-start gap-3">
+                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-violet-300" />
 
-                    <span>
-                      {feature}
-                    </span>
-
-                  </div>
-                )
-              )}
-
-              <div className="flex items-center gap-3">
-
-                <Shield className="h-5 w-5 text-violet-400" />
-
-                <span>
+                <span className="text-sm text-zinc-200">
                   Secure payments
                 </span>
-
               </div>
-
             </div>
-
-            {/* Upgrade */}
 
             <button
               onClick={handleUpgrade}
               disabled={loading}
-              className="mt-12 w-full rounded-xl bg-violet-600 py-4 text-lg font-semibold transition-all hover:-translate-y-1 hover:bg-violet-500 hover:shadow-[0_0_50px_rgba(139,92,246,.5)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="relative mt-10 w-full rounded-xl bg-violet-600 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500 hover:shadow-[0_0_40px_rgba(139,92,246,0.35)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading
                 ? "Preparing checkout..."
-                : "Upgrade to pro"}
+                : "Upgrade to Pro"}
             </button>
 
+            <p className="relative mt-3 text-center text-[11px] text-zinc-600">
+              Cancel anytime
+            </p>
           </div>
-
         </div>
-
       </div>
     </section>
   );
