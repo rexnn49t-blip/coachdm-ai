@@ -16,25 +16,23 @@ export default function Hero() {
         {/* Badge */}
         <FadeIn>
           <Badge>
-            🚀 AI-Powered Assistant for Coaches
+            🚀 AI-Powered Sales Assistant for Coaches
           </Badge>
         </FadeIn>
 
         {/* Heading */}
         <FadeIn delay={0.15}>
           <h1 className="mt-8 bg-gradient-to-r from-white via-blue-100 to-blue-500 bg-clip-text text-5xl font-extrabold leading-tight text-transparent md:text-7xl">
-            Turn Coaching Conversations
-            <br />
-            Into Better Conversations
+           “Turn More Conversations Into Clients”
+           
           </h1>
         </FadeIn>
 
         {/* Description */}
         <FadeIn delay={0.3}>
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-gray-400 md:text-xl">
-            Get personalized AI reply suggestions, conversation guidance,
-            booking messages, and objection-handling assistance for the
-            conversations you&apos;re already having with potential clients.
+            Find potential clients, generate better replies, handle objections,
+            and manage follow-ups with AI built specifically for coaches.
           </p>
         </FadeIn>
 
@@ -62,11 +60,11 @@ export default function Hero() {
               {/* Header */}
               <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
                 <h3 className="text-lg font-semibold text-white">
-                  CoachDM AI Workspace
+                  CoachDM AI
                 </h3>
 
                 <div className="rounded-full bg-blue-600/20 px-3 py-1 text-xs font-medium text-blue-400">
-                  Live Preview
+                  AI Reply Generator
                 </div>
               </div>
 
@@ -85,25 +83,14 @@ export default function Hero() {
                     </div>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <p className="mb-2 text-sm text-gray-400">
-                        Tone
-                      </p>
+                  {/* Tone */}
+                  <div>
+                    <p className="mb-2 text-sm text-gray-400">
+                      Tone
+                    </p>
 
-                      <div className="rounded-xl border border-zinc-800 bg-black p-3">
-                        Professional ▼
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="mb-2 text-sm text-gray-400">
-                        Goal
-                      </p>
-
-                      <div className="rounded-xl border border-zinc-800 bg-black p-3">
-                        Continue Conversation ▼
-                      </div>
+                    <div className="rounded-xl border border-zinc-800 bg-black p-3">
+                      Professional ▼
                     </div>
                   </div>
 

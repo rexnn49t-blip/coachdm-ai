@@ -1,27 +1,27 @@
 import {
+  Search,
   MessageSquareText,
-  WandSparkles,
-  Copy,
+  ArrowRight,
 } from "lucide-react";
 
 const steps = [
   {
+    icon: Search,
+    title: "Find Potential Clients",
+    description:
+      "Discover publicly available prospects who may be a good fit for your coaching and identify relevant opportunities.",
+  },
+  {
     icon: MessageSquareText,
-    title: "Bring In a Lead's Message",
+    title: "Start Better Conversations",
     description:
-      "Paste a message from an existing conversation with a potential client into CoachDM AI.",
+      "Generate personalized replies, handle objections, and communicate with potential clients more confidently.",
   },
   {
-    icon: WandSparkles,
-    title: "Generate a Personalized Reply",
+    icon: ArrowRight,
+    title: "Follow Up & Convert",
     description:
-      "Choose your tone and goal, then let CoachDM AI create a natural response tailored to the conversation.",
-  },
-  {
-    icon: Copy,
-    title: "Review & Send",
-    description:
-      "Review the suggested reply, make any changes you want, and send it through your usual communication channel.",
+      "Track your leads, manage follow-ups, and move promising conversations toward calls and paying clients.",
   },
 ];
 
@@ -38,16 +38,17 @@ export default function HowItWorks() {
             How It Works
           </span>
 
-          <h2 className="mt-6 bg-gradient-to-r from-white via-blue-100 to-blue-500 bg-clip-text text-4xl font-bold text-transparent md:text-5xl">
-            Turn Conversations Into
-            <br />
-            Better Replies
-          </h2>
+         <h2 className="mt-6 bg-gradient-to-r from-white via-blue-100 to-blue-500 bg-clip-text text-4xl font-bold text-transparent md:text-5xl">
+  Find Prospects.
+  <br />
+  Start Conversations. 
+    <br />
+  Close Clients.
+</h2>
 
           <p className="mt-6 text-lg leading-8 text-gray-400">
-            No prompt engineering. No copywriting experience. Just bring in a
-            message from an existing conversation, get AI assistance, review
-            the response, and send it with confidence.
+            Find potential clients, start better conversations, and follow up
+            with confidence using AI built specifically for coaches.
           </p>
         </div>
 

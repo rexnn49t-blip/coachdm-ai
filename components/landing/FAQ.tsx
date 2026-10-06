@@ -2,22 +2,37 @@ const faqs = [
   {
     question: "Who is CoachDM AI for?",
     answer:
-      "CoachDM AI is built for business coaches, life coaches, fitness coaches, consultants, mentors, and other professionals who want AI assistance when communicating with potential clients.",
+      "CoachDM AI is built for coaches and other client-focused professionals who use conversations, follow-ups, and sales to grow their business. It is especially useful for business, career, executive, life, leadership, and fitness coaches.",
+  },
+  {
+    question: "What can I do with CoachDM AI?",
+    answer:
+      "You can discover potential clients, generate personalized replies, handle objections, practice sales conversations with AI, manage leads, and keep track of follow-ups.",
   },
   {
     question: "Do I need AI experience?",
     answer:
-      "No. Simply paste a message from an existing conversation, choose a tone, and CoachDM AI generates a personalized reply suggestion in seconds.",
+      "No. CoachDM AI is designed to be simple to use. Choose the tool you need, provide the relevant information, and let AI assist you with the next step.",
   },
   {
-    question: "Can I try it for free?",
+    question: "Can I try CoachDM AI for free?",
     answer:
-      "Yes. The Free plan includes 3 AI replies per month, so you can experience CoachDM AI before deciding whether to upgrade.",
+      "Yes. The Free plan includes 3 AI replies per month and 3 AI lead searches per month. Free users can also save 1 lead.",
   },
   {
-    question: "What happens if I upgrade?",
+    question: "What's included in the Pro plan?",
     answer:
-      "You'll unlock unlimited AI replies, premium reply tones, objection handling, reply history, and future Pro features.",
+      "Pro includes unlimited AI replies, unlimited AI lead generation, unlimited lead management, AI follow-up assistance, AI sales roleplay, objection handling, reply history, and priority support.",
+  },
+  {
+    question: "How much does Pro cost?",
+    answer:
+      "The Pro plan is $29 per month. You can cancel anytime, and your subscription continues until the end of the current billing period.",
+  },
+  {
+    question: "Will CoachDM AI automatically contact my prospects?",
+    answer:
+      "No. CoachDM AI assists you with prospect discovery, replies, sales practice, and follow-ups, but you remain in control of your conversations and decide what to send.",
   },
 ];
 

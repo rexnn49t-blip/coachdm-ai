@@ -1,24 +1,24 @@
 import {
   MessageSquare,
-  CalendarCheck,
+  Search,
   ShieldCheck,
-  Sparkles,
+  UsersRound,
+  BrainCircuit,
   History,
-  Zap,
 } from "lucide-react";
 
 const features = [
   {
     icon: MessageSquare,
-    title: "AI Reply Assistance",
+    title: "AI Reply Generator",
     description:
-      "Generate personalized replies based on the conversations you're already having with potential clients.",
+      "Generate personalized replies based on your real conversations with potential clients.",
   },
   {
-    icon: CalendarCheck,
-    title: "Call Booking Messages",
+    icon: Search,
+    title: "AI Lead Generator",
     description:
-      "Create clear, natural messages that help move an ongoing conversation toward a call when appropriate.",
+      "Research publicly discoverable prospects and find better opportunities to start conversations.",
   },
   {
     icon: ShieldCheck,
@@ -27,22 +27,22 @@ const features = [
       "Get thoughtful response suggestions for pricing questions, hesitation, and common client concerns.",
   },
   {
-    icon: Sparkles,
-    title: "Multiple Tones",
+    icon: UsersRound,
+    title: "Leads & Follow-Ups",
     description:
-      "Choose from Professional, Confident, Empathetic, Persuasive, and other response styles.",
+      "Organize your leads, track conversations, manage follow-ups, and move prospects toward becoming clients.",
+  },
+  {
+    icon: BrainCircuit,
+    title: "AI Sales Roleplay",
+    description:
+      "Practice sales conversations, handle difficult objections, and build confidence before talking to real prospects.",
   },
   {
     icon: History,
     title: "Reply History",
     description:
-      "Keep access to the AI replies you've generated and review your previous conversation assistance.",
-  },
-  {
-    icon: Zap,
-    title: "Lightning Fast",
-    description:
-      "Get useful reply suggestions in seconds so you can respond to conversations more efficiently.",
+      "Keep access to your generated replies and review your previous conversation assistance.",
   },
 ];
 
@@ -55,12 +55,12 @@ export default function Features() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="text-center">
           <h2 className="text-4xl font-bold">
-            Everything You Need for Better Conversations
+            Everything You Need to Turn Conversations Into Clients
           </h2>
 
           <p className="mt-4 text-gray-400">
-            Built specifically for coaches who want to save time and communicate
-            more confidently with potential clients.
+            Built specifically for coaches to find prospects, start better
+            conversations, and follow up with confidence.
           </p>
         </div>
 
