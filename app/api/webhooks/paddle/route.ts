@@ -224,12 +224,6 @@ export async function POST(req: NextRequest) {
           firstName: "there",
         });
 
-        console.log("Pro upgrade email check:", {
-  hasEmail: Boolean(email),
-  previousPlan: previousSubscription?.plan ?? null,
-  eventType: eventData.eventType,
-});
-
         await sendSubscriptionEmail({
           email,
           subject:
