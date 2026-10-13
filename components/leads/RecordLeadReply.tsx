@@ -276,19 +276,24 @@ export default function RecordLeadReply({
       {/* ===================================================== */}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] isolate flex items-center justify-center p-4 sm:p-6">
           {/* Backdrop */}
 
           <button
             type="button"
             aria-label="Close modal"
             onClick={closeModal}
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            className="absolute inset-0 z-0 cursor-default bg-black/80 backdrop-blur-md"
           />
 
           {/* Modal */}
 
-          <div className="relative z-10 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/60">
+          <div
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="record-lead-reply-title"
+  className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/60"
+>
             {/* ================================================= */}
             {/* HEADER */}
             {/* ================================================= */}
@@ -304,7 +309,10 @@ export default function RecordLeadReply({
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold tracking-tight text-white">
+                  <h2
+  id="record-lead-reply-title"
+  className="text-xl font-semibold tracking-tight text-white"
+>
                     {analysis
                       ? "AI Reply Analysis"
                       : "Record Lead Reply"}
