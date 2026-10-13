@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   Brain,
@@ -275,7 +276,7 @@ export default function RecordLeadReply({
       {/* MODAL */}
       {/* ===================================================== */}
 
-      {open && (
+      {open && createPortal(
         <div className="fixed inset-0 z-[9999] isolate flex items-center justify-center p-4 sm:p-6">
           {/* Backdrop */}
 
@@ -283,7 +284,9 @@ export default function RecordLeadReply({
             type="button"
             aria-label="Close modal"
             onClick={closeModal}
-            className="absolute inset-0 z-0 cursor-default bg-black/80 backdrop-blur-md"
+            
+            className="fixed inset-0 z-0 cursor-default bg-black/65 backdrop-blur-md"
+
           />
 
           {/* Modal */}
@@ -292,7 +295,9 @@ export default function RecordLeadReply({
   role="dialog"
   aria-modal="true"
   aria-labelledby="record-lead-reply-title"
-  className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/60"
+  
+className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/60"
+
 >
             {/* ================================================= */}
             {/* HEADER */}
@@ -344,7 +349,9 @@ export default function RecordLeadReply({
             {/* CONTENT */}
             {/* ================================================= */}
 
-           <div className="min-h-0 flex-1 overflow-y-auto p-6 sm:p-7">
+           
+<div className="relative z-0 min-h-0 flex-1 overflow-y-auto p-6 sm:p-7">
+
               {!analysis ? (
                 <>
                   {/* Reply label */}
@@ -510,7 +517,11 @@ export default function RecordLeadReply({
             {/* FOOTER */}
             {/* ================================================= */}
 
-            <div className="flex shrink-0 items-center justify-end gap-3 border-t border-white/[0.06] bg-black/20 p-5 sm:p-6">
+            
+
+<div className="relative z-50 isolate flex min-h-[88px] w-full shrink-0 items-center justify-end gap-3 border-t border-white/10 bg-[#090909] p-5 opacity-100 shadow-[0_-12px_30px_rgba(0,0,0,0.9)] sm:p-6">
+
+
               {!analysis ? (
                 <>
                   <button
@@ -580,9 +591,9 @@ export default function RecordLeadReply({
                 </>
               )}
             </div>
-          </div>
+                   </div>
         </div>
-      )}
+      , document.body)}
     </>
   );
 }
